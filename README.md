@@ -1,61 +1,284 @@
-# 🚀 Getting started with Strapi
+# Strapi Backend Setup Guide
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
+## 1. Initial Strapi Setup
 
-### `develop`
+```bash
+# Create new Strapi project
+npx create-strapi-app@latest coupon-backend --quickstart
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
+# Navigate to project
+cd coupon-backend
+
+# Install required dependencies
+npm install @strapi/plugin-users-permissions
+```
+
+## 2. Content-Types Configuration
+
+### A. Store Content-Type
+
+Navigate to: **Content-Type Builder** → **Create new collection type**
+
+**Collection Name:** `store`
+
+**Fields:**
 
 ```
+firstName         - Text (Short text)
+lastName          - Text (Short text)
+phone             - Text (Short text)
+email             - Email
+position          - Text (Short text)
+storeName         - Text (Short text) *Required
+mainBusinessType  - Text (Short text)
+subBusinessType   - Text (Short text)
+storePhone        - Text (Short text)
+address           - Text (Long text)
+openTime          - Time
+closeTime         - Time
+openCloseDay      - JSON
+facebook          - Text (Short text)
+instagram         - Text (Short text)
+lineOA            - Text (Short text)
+premiumIdLine     - Text (Short text)
+website           - Text (Short text)
+googleMapLink     - Text (Long text)
+shopCTPLink       - Text (Long text)
+agent             - Relation: Many-to-One with User (from users-permissions)
+vouchers          - Relation: One-to-Many with Voucher
+```
+
+**Important Relations:**
+- Add relation: `agent` → **User (from users-permissions)** → Many Stores to One User
+- Add relation: `vouchers` → One Store has Many Vouchers
+
+### B. Voucher Content-Type
+
+**Collection Name:** `voucher`
+
+**Fields:**
+
+```
+voucherName       - Text (Short text) *Required
+voucherDetail     - Text (Long text)
+packageType       - Text (Short text)
+voucherAmount     - Text (Short text)
+voucherStart      - Date
+voucherEnd        - Date
+store             - Relation: Many-to-One with Store
+collections       - Relation: One-to-Many with Collection
+```
+
+**Relations:**
+- Add relation: `store` → **Store** → Many Vouchers to One Store
+- Add relation: `collections` → One Voucher has Many Collections
+
+### C. Collection Content-Type
+
+**Collection Name:** `collection`
+
+**Fields:**
+
+```
+type              - Text (Short text)
+name              - Text (Short text) *Required
+value             - Number (integer or decimal)
+voucher           - Relation: Many-to-One with Voucher
+```
+
+**Relations:**
+- Add relation: `voucher` → **Voucher** → Many Collections to One Voucher
+
+## 3. Permissions Setup
+
+Navigate to: **Settings** → **Users & Permissions Plugin** → **Roles**
+
+### Authenticated Role (for Agents)
+
+**Store Permissions:**
+```
+✓ find (with filters: user = logged-in user)
+✓ findOne (own stores only)
+✓ create
+✓ update (own stores only)
+✓ delete (own stores only)
+```
+
+**Voucher Permissions:**
+```
+✓ find
+✓ findOne
+✓ create
+✓ update
+✓ delete
+```
+
+**Collection Permissions:**
+```
+✓ find
+✓ findOne
+✓ create
+✓ update
+✓ delete
+```
+
+**Users-permissions:**
+```
+✓ me (to get current user info)
+```
+
+### Public Role
+
+**Auth:**
+```
+✓ login
+✓ register (if you want self-registration)
+```
+
+## 4. Custom Controller for Filtering (Optional but Recommended)
+
+Create: `src/api/store/controllers/store.js`
+
+```javascript
+'use strict';
+
+const { createCoreController } = require('@strapi/strapi').factories;
+
+module.exports = createCoreController('api::store.store', ({ strapi }) => ({
+  async find(ctx) {
+    const user = ctx.state.user;
+    
+    if (!user) {
+      return ctx.unauthorized('You must be logged in');
+    }
+
+    // Filter stores by logged-in user
+    ctx.query = {
+      ...ctx.query,
+      filters: {
+        ...ctx.query.filters,
+        agent: user.id,
+      },
+      populate: {
+        vouchers: {
+          populate: ['collections'],
+        },
+      },
+    };
+
+    const { data, meta } = await super.find(ctx);
+    return { data, meta };
+  },
+}));
+```
+
+## 5. Environment Setup
+
+Create `.env` file:
+
+```env
+HOST=0.0.0.0
+PORT=1337
+APP_KEYS=your-app-keys
+API_TOKEN_SALT=your-api-token-salt
+ADMIN_JWT_SECRET=your-admin-jwt-secret
+TRANSFER_TOKEN_SALT=your-transfer-token-salt
+JWT_SECRET=your-jwt-secret
+```
+
+## 6. CORS Configuration
+
+Edit `config/middlewares.js`:
+
+```javascript
+module.exports = [
+  'strapi::errors',
+  {
+    name: 'strapi::security',
+    config: {
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          'connect-src': ["'self'", 'https:'],
+          'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+          'media-src': ["'self'", 'data:', 'blob:', 'https:'],
+          upgradeInsecureRequests: null,
+        },
+      },
+    },
+  },
+  {
+    name: 'strapi::cors',
+    config: {
+      enabled: true,
+      origin: ['http://localhost:5173', 'http://localhost:3000'],
+      credentials: true,
+    },
+  },
+  'strapi::poweredBy',
+  'strapi::logger',
+  'strapi::query',
+  'strapi::body',
+  'strapi::session',
+  'strapi::favicon',
+  'strapi::public',
+];
+```
+
+## 7. Run Strapi
+
+```bash
 npm run develop
-# or
-yarn develop
 ```
 
-### `start`
+Access admin panel at: `http://localhost:1337/admin`
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
+## 8. Create Test User (Agent)
 
-```
-npm run start
-# or
-yarn start
-```
+1. Go to **Content Manager** → **User**
+2. Click **Create new entry**
+3. Fill in:
+   - Username: `agent1`
+   - Email: `agent1@example.com`
+   - Password: `Test1234!`
+   - Confirmed: `true`
+   - Role: `Authenticated`
+4. Save
 
-### `build`
+## 9. API Endpoints
 
-Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
-
-```
-npm run build
-# or
-yarn build
-```
-
-## ⚙️ Deployment
-
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
+Your API will be available at:
 
 ```
-yarn strapi deploy
+POST   /api/auth/local                    # Login
+GET    /api/users/me                      # Get current user
+GET    /api/stores                        # Get agent's stores
+POST   /api/stores                        # Create store
+GET    /api/stores/:id                    # Get single store
+PUT    /api/stores/:id                    # Update store
+DELETE /api/stores/:id                    # Delete store
+GET    /api/vouchers                      # Get vouchers
+POST   /api/vouchers                      # Create voucher
+GET    /api/collections                   # Get collections
+POST   /api/collections                   # Create collection
 ```
 
-## 📚 Learn more
+## 10. Testing with Postman/curl
 
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://strapi.io/blog) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
+**Login:**
+```bash
+curl -X POST http://localhost:1337/api/auth/local \
+  -H "Content-Type: application/json" \
+  -d '{
+    "identifier": "agent1@example.com",
+    "password": "Test1234!"
+  }'
+```
 
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
+Save the JWT token from response and use it in subsequent requests:
 
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+**Get Stores:**
+```bash
+curl -X GET http://localhost:1337/api/stores \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```

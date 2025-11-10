@@ -1,0 +1,96 @@
+{
+  "kind": "collectionType",
+  "collectionName": "stores",
+  "info": {
+    "singularName": "store",
+    "pluralName": "stores",
+    "displayName": "store"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "storeName": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string"
+    },
+    "mainBusinessType": {
+      "type": "enumeration",
+      "enum": [
+        "restaurant",
+        "retail",
+        "beauty",
+        "health",
+        "education",
+        "entertainment",
+        "other"
+      ]
+    },
+    "subBusinessType": {
+      "type": "string"
+    },
+    "storePhone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "text"
+    },
+    "openCloseDay": {
+      "type": "json"
+    },
+    "openTime": {
+      "type": "string"
+    },
+    "closeTime": {
+      "type": "string"
+    },
+    "facebook": {
+      "type": "string"
+    },
+    "instagram": {
+      "type": "string"
+    },
+    "lineOA": {
+      "type": "string"
+    },
+    "premiumIdLine": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "googleMapLink": {
+      "type": "string"
+    },
+    "shopCTPLink": {
+      "type": "string"
+    },
+    "vouchers": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::voucher.voucher",
+      "mappedBy": "store"
+    },
+    "agent": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "stores"
+    }
+  }
+}

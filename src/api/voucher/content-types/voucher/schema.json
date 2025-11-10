@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "vouchers",
+  "info": {
+    "singularName": "voucher",
+    "pluralName": "vouchers",
+    "displayName": "voucher"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "voucherName": {
+      "type": "string"
+    },
+    "packageType": {
+      "type": "enumeration",
+      "enum": [
+        "package299",
+        "package599",
+        "package899"
+      ]
+    },
+    "voucherDetail": {
+      "type": "text"
+    },
+    "voucherAmount": {
+      "type": "enumeration",
+      "enum": [
+        "use200",
+        "use500",
+        "use800"
+      ]
+    },
+    "voucherStart": {
+      "type": "string"
+    },
+    "voucherEnd": {
+      "type": "string"
+    },
+    "store": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::store.store",
+      "inversedBy": "vouchers"
+    },
+    "collections": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::collection.collection",
+      "mappedBy": "voucher"
+    }
+  }
+}
