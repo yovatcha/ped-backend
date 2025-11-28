@@ -18,8 +18,11 @@ module.exports = [
     name: 'strapi::cors',
     config: {
       enabled: true,
-      origin: ['http://localhost:5173', 'http://localhost:3000'],
-      credentials: true,
+      headers: '*',
+      origin: [
+        'https://dev2.superaffiliate.app', 'https://localhost:5173',
+      ],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     },
   },
   'strapi::poweredBy',
