@@ -50,6 +50,16 @@
       "relation": "oneToMany",
       "target": "api::collection.collection",
       "mappedBy": "voucher"
+    },
+    "voucherCover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
     }
   }
 }

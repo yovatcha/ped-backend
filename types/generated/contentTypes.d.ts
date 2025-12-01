@@ -590,6 +590,9 @@ export interface ApiVoucherVoucher extends Struct.CollectionTypeSchema {
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     voucherAmount: Schema.Attribute.Enumeration<['use200', 'use500', 'use800']>;
+    voucherCover: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
     voucherDetail: Schema.Attribute.Text;
     voucherEnd: Schema.Attribute.String;
     voucherName: Schema.Attribute.String;
