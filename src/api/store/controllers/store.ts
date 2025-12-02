@@ -1,17 +1,18 @@
 import { factories } from "@strapi/strapi";
 
 export default factories.createCoreController("api::store.store", ({ strapi }) => ({
+
   async find(ctx) {
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized("Not logged in");
 
-    const filters = (ctx.query?.filters || {}) as Record<string, any>;
+    const incomingFilters = (ctx.query.filters ?? {}) as Record<string, any>;
 
     ctx.query = {
       ...ctx.query,
       filters: {
-        ...filters,
-        agent: user.id
+        ...incomingFilters,
+        agent: user.id,
       },
       populate: ["vouchers"],
     };
@@ -23,24 +24,16 @@ export default factories.createCoreController("api::store.store", ({ strapi }) =
     const user = ctx.state.user;
     if (!user) return ctx.unauthorized("Not logged in");
 
-    // Log what we're receiving
-    console.log("Original request body:", JSON.stringify(ctx.request.body, null, 2));
+    const incomingData = ctx.request.body?.data || {};
 
-    const data = ctx.request.body?.data || {};
-
-    // Build new body
-    const newBody = {
+    ctx.request.body = {
       data: {
-        ...data,
-        agent: user.id,
-      }
+        ...incomingData,
+        agent: user.id,   // v5 relation assignment
+      },
     };
-
-    console.log("Modified request body:", JSON.stringify(newBody, null, 2));
-
-    // Replace the entire body
-    ctx.request.body = newBody;
 
     return await super.create(ctx);
   },
+
 }));
