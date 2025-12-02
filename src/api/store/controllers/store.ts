@@ -11,9 +11,7 @@ export default factories.createCoreController("api::store.store", ({ strapi }) =
       ...ctx.query,
       filters: {
         ...filters,
-        agent: {
-          id: user.id
-        }
+        agent: user.id
       },
       populate: ["vouchers"],
     };
