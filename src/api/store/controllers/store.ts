@@ -41,14 +41,20 @@ export default factories.createCoreController(
       if (!user) return ctx.unauthorized('Not logged in');
 
       const incomingData = ctx.request.body?.data || {};
+      
+      // Remove vouchers from incoming data since it's a relation managed from the voucher side
+      // (oneToMany with mappedBy means the foreign key is on the voucher, not the store)
+      // Vouchers should be created separately and linked via their 'store' field
+      const { vouchers, ...storeData } = incomingData;
 
       ctx.request.body = {
         data: {
-          ...incomingData,
+          ...storeData,
           agent: user.id,
         },
       };
 
+      // super.create() will handle validation and sanitization automatically
       return await super.create(ctx);
     },
   })
