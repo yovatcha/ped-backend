@@ -1,21 +1,16 @@
-import { factories } from "@strapi/strapi";
+import { factories } from '@strapi/strapi';
 
 export default factories.createCoreController(
-  "api::store.store",
+  'api::store.store',
   ({ strapi }) => ({
     async find(ctx) {
       const user = ctx.state.user;
-      if (!user) return ctx.unauthorized("Not logged in");
+      if (!user) return ctx.unauthorized('Not logged in');
 
-      // 1) Sanitize the incoming query first
-      await this.validateQuery(ctx); // optional but recommended
-      const sanitizedQuery = await this.sanitizeQuery(ctx); // [[Sanitization & validation](https://docs.strapi.io/cms/backend-customization/controllers#sanitization-and-validation-in-controllers)]
+      await this.validateQuery(ctx);
+      const sanitizedQuery = await this.sanitizeQuery(ctx);
 
-      // 2) Force agent filter so each user only sees their stores
-      const incomingFilters = (sanitizedQuery.filters ?? {}) as Record<
-        string,
-        any
-      >;
+      const incomingFilters = (sanitizedQuery.filters ?? {}) as Record<string, any>;
 
       const filters = {
         ...incomingFilters,
@@ -27,11 +22,11 @@ export default factories.createCoreController(
       const queryForService = {
         ...sanitizedQuery,
         filters,
-        populate: ["vouchers"], // you can also merge with existing populate if needed
+        populate: ['vouchers'],
       };
 
       const { results, pagination } = await strapi
-        .service("api::store.store")
+        .service('api::store.store')
         .find(queryForService);
 
       const sanitizedResults = await this.sanitizeOutput(results, ctx);
@@ -45,18 +40,23 @@ export default factories.createCoreController(
       
       console.log("Creating store for user:", user.id);
       
+      // ✅ Don't modify ctx.request.body - use entityService directly
       const incomingData = ctx.request.body?.data || {};
-      const { vouchers, agent, ...storeData } = incomingData;
-    
-      // ✅ Correct format for Strapi v5 relations
-      ctx.request.body = {
+      
+      // Remove fields that shouldn't be in the payload
+      const { agent, vouchers, id, documentId, ...cleanData } = incomingData;
+      
+      // ✅ Use entityService.create to bypass sanitization
+      const newStore = await strapi.entityService.create('api::store.store', {
         data: {
-          ...storeData,
-          agent: user.id,  // ← Just pass the ID directly, not wrapped in connect
+          ...cleanData,
+          agent: user.id,  // Set the agent relation directly
         },
-      };
-    
-      return await super.create(ctx);
+      });
+      
+      // Sanitize and return the response
+      const sanitized = await this.sanitizeOutput(newStore, ctx);
+      return this.transformResponse(sanitized);
     }
   })
 );
