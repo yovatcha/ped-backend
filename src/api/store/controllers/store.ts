@@ -19,10 +19,13 @@ export default factories.createCoreController(
         },
       };
 
+      // ✅ Keep the populate from the frontend query instead of overriding it
       const queryForService = {
         ...sanitizedQuery,
         filters,
-        populate: ['vouchers'],
+        // Don't override populate - use what comes from the frontend
+        // If no populate is specified, default to basic vouchers
+        populate: sanitizedQuery.populate || ['vouchers'],
       };
 
       const { results, pagination } = await strapi
@@ -40,7 +43,6 @@ export default factories.createCoreController(
       
       console.log("Creating store for user:", user.id);
       
-      // ✅ Don't modify ctx.request.body - use entityService directly
       const incomingData = ctx.request.body?.data || {};
       
       // Remove fields that shouldn't be in the payload
@@ -50,7 +52,7 @@ export default factories.createCoreController(
       const newStore = await strapi.entityService.create('api::store.store', {
         data: {
           ...cleanData,
-          agent: user.id,  // Set the agent relation directly
+          agent: user.id,
         },
       });
       

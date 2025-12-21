@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "coupons",
+  "info": {
+    "singularName": "coupon",
+    "pluralName": "coupons",
+    "displayName": "coupon"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "couponName": {
+      "type": "string"
+    },
+    "couponDetail": {
+      "type": "text"
+    },
+    "couponAmount": {
+      "type": "integer"
+    },
+    "usableDays": {
+      "type": "json"
+    },
+    "activeTime": {
+      "type": "string"
+    },
+    "deactiveTime": {
+      "type": "string"
+    },
+    "termsAndCondition": {
+      "type": "text"
+    },
+    "expiredDate": {
+      "type": "date"
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::collection.collection",
+      "inversedBy": "coupons"
+    }
+  }
+}

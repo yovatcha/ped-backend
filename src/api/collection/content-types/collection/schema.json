@@ -14,8 +14,8 @@
     "name": {
       "type": "string"
     },
-    "type": {
-      "type": "string"
+    "detail": {
+      "type": "text"
     },
     "value": {
       "type": "float"
@@ -25,6 +25,22 @@
       "relation": "manyToOne",
       "target": "api::voucher.voucher",
       "inversedBy": "collections"
+    },
+    "collectionCover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "coupons": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::coupon.coupon",
+      "mappedBy": "collection"
     }
   }
 }
