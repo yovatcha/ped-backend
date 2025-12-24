@@ -519,6 +519,9 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
       'api::collection.collection'
     >;
     couponAmount: Schema.Attribute.Integer;
+    couponCover: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
     couponDetail: Schema.Attribute.Text;
     couponName: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
