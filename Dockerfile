@@ -2,6 +2,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install wget for healthchecks
+RUN apk add --no-cache wget
+
 # Copy package files
 COPY package*.json ./
 
@@ -22,9 +25,9 @@ ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=1337
 
-# Health check for Strapi
+# Health check for Strapi using wget
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:1337/_health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD wget --quiet --tries=1 --spider http://localhost:1337/_health || exit 1
 
 # Start Strapi
 CMD ["npm", "run", "start"]
