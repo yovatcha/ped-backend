@@ -19,13 +19,10 @@ export default factories.createCoreController(
         },
       };
 
-      // ✅ Keep the populate from the frontend query instead of overriding it
+      // ✅ CRITICAL FIX: Pass through the entire sanitizedQuery
       const queryForService = {
         ...sanitizedQuery,
         filters,
-        // Don't override populate - use what comes from the frontend
-        // If no populate is specified, default to basic vouchers
-        populate: sanitizedQuery.populate || ['vouchers'],
       };
 
       const { results, pagination } = await strapi
@@ -45,10 +42,8 @@ export default factories.createCoreController(
       
       const incomingData = ctx.request.body?.data || {};
       
-      // Remove fields that shouldn't be in the payload
       const { agent, vouchers, id, documentId, ...cleanData } = incomingData;
       
-      // ✅ Use entityService.create to bypass sanitization
       const newStore = await strapi.entityService.create('api::store.store', {
         data: {
           ...cleanData,
@@ -56,7 +51,6 @@ export default factories.createCoreController(
         },
       });
       
-      // Sanitize and return the response
       const sanitized = await this.sanitizeOutput(newStore, ctx);
       return this.transformResponse(sanitized);
     }
