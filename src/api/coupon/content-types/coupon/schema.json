@@ -17,23 +17,14 @@
     "couponDetail": {
       "type": "text"
     },
+    "expiredDate": {
+      "type": "date"
+    },
     "couponAmount": {
       "type": "integer"
     },
-    "usableDays": {
-      "type": "json"
-    },
-    "activeTime": {
-      "type": "string"
-    },
-    "deactiveTime": {
-      "type": "string"
-    },
-    "termsAndCondition": {
-      "type": "text"
-    },
-    "expiredDate": {
-      "type": "date"
+    "couponPrice": {
+      "type": "integer"
     },
     "collection": {
       "type": "relation",

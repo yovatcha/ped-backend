@@ -485,7 +485,6 @@ export interface ApiCollectionCollection extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    detail: Schema.Attribute.Text;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -513,7 +512,6 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    activeTime: Schema.Attribute.String;
     collection: Schema.Attribute.Relation<
       'manyToOne',
       'api::collection.collection'
@@ -524,10 +522,10 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
     >;
     couponDetail: Schema.Attribute.Text;
     couponName: Schema.Attribute.String;
+    couponPrice: Schema.Attribute.Integer;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    deactiveTime: Schema.Attribute.String;
     expiredDate: Schema.Attribute.Date;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -536,11 +534,9 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     publishedAt: Schema.Attribute.DateTime;
-    termsAndCondition: Schema.Attribute.Text;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    usableDays: Schema.Attribute.JSON;
   };
 }
 
@@ -614,13 +610,29 @@ export interface ApiVoucherVoucher extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    category: Schema.Attribute.Enumeration<
+      [
+        'restaurant',
+        'retail',
+        'beauty',
+        'health',
+        'education',
+        'entertainment',
+        'other',
+      ]
+    >;
     collections: Schema.Attribute.Relation<
       'oneToMany',
       'api::collection.collection'
     >;
+    commissionAmount: Schema.Attribute.Integer;
+    commissionType: Schema.Attribute.Enumeration<['percent', 'fixedRate']>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    discount: Schema.Attribute.Integer;
+    expiredDate: Schema.Attribute.Date;
+    fullPrice: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -635,7 +647,6 @@ export interface ApiVoucherVoucher extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    voucherAmount: Schema.Attribute.Enumeration<['use200', 'use500', 'use800']>;
     voucherCover: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios'
     >;

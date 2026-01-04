@@ -14,6 +14,24 @@
     "voucherName": {
       "type": "string"
     },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "restaurant",
+        "retail",
+        "beauty",
+        "health",
+        "education",
+        "entertainment",
+        "other"
+      ]
+    },
+    "expiredDate": {
+      "type": "date"
+    },
+    "fullPrice": {
+      "type": "integer"
+    },
     "packageType": {
       "type": "enumeration",
       "enum": [
@@ -25,13 +43,18 @@
     "voucherDetail": {
       "type": "text"
     },
-    "voucherAmount": {
+    "commissionType": {
       "type": "enumeration",
       "enum": [
-        "use200",
-        "use500",
-        "use800"
+        "percent",
+        "fixedRate"
       ]
+    },
+    "commissionAmount": {
+      "type": "integer"
+    },
+    "discount": {
+      "type": "integer"
     },
     "voucherStart": {
       "type": "string"
