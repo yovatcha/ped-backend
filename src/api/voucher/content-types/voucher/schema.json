@@ -40,6 +40,14 @@
         "package899"
       ]
     },
+    "voucherAmount": {
+      "type": "enumeration",
+      "enum": [
+        "amount200",
+        "amount500",
+        "amount1000"
+      ]
+    },
     "voucherDetail": {
       "type": "text"
     },
