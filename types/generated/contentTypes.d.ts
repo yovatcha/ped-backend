@@ -552,50 +552,36 @@ export interface ApiStoreStore extends Struct.CollectionTypeSchema {
   };
   attributes: {
     address: Schema.Attribute.Text;
+    addressShort: Schema.Attribute.Text;
     agent: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
     >;
-    closeTime: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    district: Schema.Attribute.String;
     email: Schema.Attribute.String;
-    facebook: Schema.Attribute.String;
-    firstName: Schema.Attribute.String;
-    googleMapLink: Schema.Attribute.String;
-    instagram: Schema.Attribute.String;
     lastName: Schema.Attribute.String;
-    lineOA: Schema.Attribute.String;
+    linkCTPCRM: Schema.Attribute.String;
+    linkLineOA: Schema.Attribute.String;
+    lister: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::store.store'> &
       Schema.Attribute.Private;
-    mainBusinessType: Schema.Attribute.Enumeration<
-      [
-        'restaurant',
-        'retail',
-        'beauty',
-        'health',
-        'education',
-        'entertainment',
-        'other',
-      ]
-    >;
-    openCloseDay: Schema.Attribute.JSON;
-    openTime: Schema.Attribute.String;
-    phone: Schema.Attribute.String;
+    name: Schema.Attribute.String;
+    phoneNumber: Schema.Attribute.String;
     position: Schema.Attribute.String;
-    premiumIdLine: Schema.Attribute.String;
+    province: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    shopCTPLink: Schema.Attribute.String;
+    storeContactNumber: Schema.Attribute.String;
     storeName: Schema.Attribute.String;
-    storePhone: Schema.Attribute.String;
-    subBusinessType: Schema.Attribute.String;
+    subDistrict: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     vouchers: Schema.Attribute.Relation<'oneToMany', 'api::voucher.voucher'>;
-    website: Schema.Attribute.String;
+    zipCode: Schema.Attribute.String;
   };
 }
 
