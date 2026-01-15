@@ -475,7 +475,7 @@ export interface ApiCollectionCollection extends Struct.CollectionTypeSchema {
     singularName: 'collection';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     collectionCover: Schema.Attribute.Media<
@@ -509,7 +509,7 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
     singularName: 'coupon';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     collection: Schema.Attribute.Relation<
@@ -548,7 +548,7 @@ export interface ApiStoreStore extends Struct.CollectionTypeSchema {
     singularName: 'store';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     address: Schema.Attribute.Text;
@@ -593,7 +593,7 @@ export interface ApiVoucherVoucher extends Struct.CollectionTypeSchema {
     singularName: 'voucher';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     category: Schema.Attribute.Enumeration<

@@ -7,7 +7,7 @@
     "displayName": "voucher"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
