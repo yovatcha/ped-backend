@@ -1,0 +1,33 @@
+{
+    "kind": "collectionType",
+    "collectionName": "generations",
+    "info": {
+      "singularName": "generation",
+      "pluralName": "generations",
+      "displayName": "Generation"
+    },
+    "options": {
+      "draftAndPublish": false
+    },
+    "attributes": {
+      "requestId": {
+        "type": "string",
+        "required": true,
+        "unique": true
+      },
+      "status": {
+        "type": "enumeration",
+        "enum": ["pending", "processing", "completed", "failed"],
+        "default": "pending"
+      },
+      "generatedImages": {
+        "type": "json"
+      },
+      "error": {
+        "type": "text"
+      },
+      "completedAt": {
+        "type": "datetime"
+      }
+    }
+  }
