@@ -551,6 +551,7 @@ export interface ApiGenerationGeneration extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    aiData: Schema.Attribute.JSON;
     completedAt: Schema.Attribute.DateTime;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
