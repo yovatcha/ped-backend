@@ -3,6 +3,7 @@
 'use strict';
 
 module.exports = {
+  // Existing callback function
   async callback(ctx) {
     try {
       const { requestId, status, generatedImages, imageUrl, imageUrls, error } = ctx.request.body;
@@ -14,32 +15,23 @@ module.exports = {
         return ctx.body = { success: false, error: 'requestId is required' };
       }
 
-      // Validate status
       const validStatuses = ['pending', 'processing', 'completed', 'failed'];
       if (status && !validStatuses.includes(status)) {
         ctx.status = 400;
         return ctx.body = { success: false, error: 'Invalid status value' };
       }
 
-      // Normalize images to array format
-      // Handle multiple formats from n8n:
-      // 1. generatedImages: [{ type, url }] - full format
-      // 2. imageUrl: "string" - single image URL
-      // 3. imageUrls: ["url1", "url2"] - array of URLs
       let normalizedImages = [];
 
       if (generatedImages && Array.isArray(generatedImages)) {
-        // Already in correct format
         normalizedImages = generatedImages;
       } else if (imageUrl) {
-        // Single image URL from n8n
         normalizedImages = [{ 
           type: 'generated', 
           url: imageUrl,
-          name: `Generated Image`
+          name: 'Generated Image'
         }];
       } else if (imageUrls && Array.isArray(imageUrls)) {
-        // Array of image URLs
         normalizedImages = imageUrls.map((url, index) => ({
           type: 'generated',
           url: url,
@@ -49,7 +41,6 @@ module.exports = {
 
       console.log('📸 Normalized images:', normalizedImages);
 
-      // Find existing generation record
       const existingGenerations = await strapi.documents('api::generation.generation').findMany({
         filters: { requestId: { $eq: requestId } },
       });
@@ -57,7 +48,6 @@ module.exports = {
       const existingGeneration = existingGenerations[0];
 
       if (existingGeneration) {
-        // Update existing
         const updated = await strapi.documents('api::generation.generation').update({
           documentId: existingGeneration.documentId,
           data: {
@@ -67,9 +57,8 @@ module.exports = {
             completedAt: status === 'completed' ? new Date().toISOString() : null,
           },
         });
-        console.log('✅ Generation updated:', requestId, updated);
+        console.log('✅ Generation updated:', requestId);
       } else {
-        // Create new
         const created = await strapi.documents('api::generation.generation').create({
           data: {
             requestId,
@@ -79,7 +68,7 @@ module.exports = {
             completedAt: status === 'completed' ? new Date().toISOString() : null,
           },
         });
-        console.log('✅ Generation created:', requestId, created);
+        console.log('✅ Generation created:', requestId);
       }
 
       ctx.body = {
@@ -98,6 +87,7 @@ module.exports = {
     }
   },
 
+  // Existing status function
   async status(ctx) {
     try {
       const { requestId } = ctx.params;
@@ -141,7 +131,7 @@ module.exports = {
     }
   },
 
-  // NEW FUNCTION: Upload image from URL
+  // NEW: Upload from URL function
   async uploadFromUrl(ctx) {
     try {
       const { imageUrl, filename } = ctx.request.body;
@@ -156,7 +146,6 @@ module.exports = {
         };
       }
 
-      // Fetch image from external URL
       console.log('🔄 Fetching image from:', imageUrl);
       const response = await fetch(imageUrl);
       
@@ -166,8 +155,6 @@ module.exports = {
 
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-
-      // Get content type from response
       const contentType = response.headers.get('content-type') || 'image/png';
 
       console.log('📦 Image fetched:', {
@@ -176,7 +163,6 @@ module.exports = {
         filename,
       });
 
-      // Upload to Strapi using the upload service
       const uploadService = strapi.plugin('upload').service('upload');
       
       const uploadedFiles = await uploadService.upload({
@@ -189,7 +175,7 @@ module.exports = {
         },
       });
 
-      console.log('✅ Image uploaded to Strapi:', uploadedFiles[0]);
+      console.log('✅ Image uploaded to Strapi:', uploadedFiles[0].url);
 
       ctx.body = uploadedFiles[0];
     } catch (error) {
