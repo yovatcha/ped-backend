@@ -140,4 +140,65 @@ module.exports = {
       };
     }
   },
+
+  // NEW FUNCTION: Upload image from URL
+  async uploadFromUrl(ctx) {
+    try {
+      const { imageUrl, filename } = ctx.request.body;
+
+      console.log('📥 Upload from URL request:', { imageUrl, filename });
+
+      if (!imageUrl || !filename) {
+        ctx.status = 400;
+        return ctx.body = { 
+          success: false, 
+          error: 'Missing imageUrl or filename' 
+        };
+      }
+
+      // Fetch image from external URL
+      console.log('🔄 Fetching image from:', imageUrl);
+      const response = await fetch(imageUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      // Get content type from response
+      const contentType = response.headers.get('content-type') || 'image/png';
+
+      console.log('📦 Image fetched:', {
+        size: buffer.length,
+        contentType,
+        filename,
+      });
+
+      // Upload to Strapi using the upload service
+      const uploadService = strapi.plugin('upload').service('upload');
+      
+      const uploadedFiles = await uploadService.upload({
+        data: {},
+        files: {
+          path: buffer,
+          name: filename,
+          type: contentType,
+          size: buffer.length,
+        },
+      });
+
+      console.log('✅ Image uploaded to Strapi:', uploadedFiles[0]);
+
+      ctx.body = uploadedFiles[0];
+    } catch (error) {
+      console.error('❌ Upload from URL error:', error);
+      ctx.status = 500;
+      ctx.body = {
+        success: false,
+        error: `Failed to upload image: ${error.message}`,
+      };
+    }
+  },
 };
