@@ -80,8 +80,12 @@ module.exports = {
         }
       });
 
-      // Parse AI analysis data
-      const aiData: { description?: string; analysis?: string } = {};
+      // Parse AI analysis data (FIXED: No TypeScript syntax)
+      interface AiData {
+        description?: string;
+        analysis?: string;
+      }
+      const aiData: AiData = {};
       if (otherFields.ai_description) {
         aiData.description = otherFields.ai_description;
       }
@@ -108,29 +112,41 @@ module.exports = {
 
       if (existingGeneration) {
         // Update existing record
+        const updateData = {
+          status: normalizedStatus || existingGeneration.status,
+          generatedImages: normalizedImages.length > 0 ? normalizedImages : existingGeneration.generatedImages,
+          error: error || null,
+          completedAt: normalizedStatus === 'completed' ? new Date().toISOString() : null,
+        };
+
+        // Only include aiData if new AI data is present
+        if (Object.keys(aiData).length > 0) {
+          updateData['aiData'] = aiData;
+        }
+
         const updated = await strapi.documents('api::generation.generation').update({
           documentId: existingGeneration.documentId,
-          data: {
-            status: normalizedStatus || existingGeneration.status,
-            generatedImages: normalizedImages.length > 0 ? normalizedImages : existingGeneration.generatedImages,
-            error: error || null,
-            // Only include aiData if new AI data is present
-            ...(Object.keys(aiData).length > 0 ? { aiData } : {}),
-            completedAt: normalizedStatus === 'completed' ? new Date().toISOString() : null,
-          },
+          data: updateData,
         });
         console.log('✅ Generation updated:', requestId);
       } else {
         // Create new record
+        const createData = {
+          requestId,
+          status: normalizedStatus || 'pending',
+          generatedImages: normalizedImages,
+          error: error || null,
+          completedAt: normalizedStatus === 'completed' ? new Date().toISOString() : null,
+        };
+
+        // Only include aiData if present
+        const dataToCreate = { ...createData };
+        if (Object.keys(aiData).length > 0) {
+          (dataToCreate as any).aiData = aiData;
+        }
+
         const created = await strapi.documents('api::generation.generation').create({
-          data: {
-            requestId,
-            status: normalizedStatus || 'pending',
-            generatedImages: normalizedImages,
-            error: error || null,
-            aiData: Object.keys(aiData).length > 0 ? aiData : undefined,
-            completedAt: normalizedStatus === 'completed' ? new Date().toISOString() : null,
-          },
+          data: dataToCreate,
         });
         console.log('✅ Generation created:', requestId);
       }
@@ -175,7 +191,7 @@ module.exports = {
         };
       }
 
-      ctx.body = {
+      const responseBody = {
         success: true,
         requestId: generation.requestId,
         status: generation.status,
@@ -183,9 +199,14 @@ module.exports = {
         error: generation.error,
         createdAt: generation.createdAt,
         completedAt: generation.completedAt,
-        // aiData property may not exist on generation, so check and include if present
-        ...(generation.hasOwnProperty('aiData') ? { aiData: (generation as any).aiData } : {}),
       };
+
+      // Include aiData if it exists and if responseBody allows extra fields
+      if (Object.prototype.hasOwnProperty.call(generation, 'aiData')) {
+        (responseBody as Record<string, unknown>).aiData = generation.aiData;
+      }
+
+      ctx.body = responseBody;
     } catch (error) {
       console.error('❌ Status check error:', error);
       ctx.status = 500;
