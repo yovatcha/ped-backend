@@ -14,6 +14,10 @@ RUN npm ci --only=production
 # Copy source code
 COPY . .
 
+# Create required directories for Strapi
+RUN mkdir -p public/uploads && \
+  chmod -R 755 public
+
 # Build Strapi admin panel
 RUN NODE_ENV=production npm run build
 
