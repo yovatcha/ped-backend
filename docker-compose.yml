@@ -11,7 +11,7 @@ services:
       # Persist database - SQLite data won't be lost on restart
       - ./.tmp:/app/.tmp
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - HOST=0.0.0.0
       - PORT=1337
     restart: unless-stopped

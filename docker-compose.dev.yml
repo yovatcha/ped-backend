@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Development
+  postgres:
+    image: postgres:15-alpine
+    container_name: coupon-postgres-dev
+    environment:
+      POSTGRES_DB: strapi_dev
+      POSTGRES_USER: strapi
+      POSTGRES_PASSWORD: strapi_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      # Separate volume for dev database data
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-strapi}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Strapi Application for Development
+  strapi:
+    build: .
+    container_name: coupon-strapi-dev
+    ports:
+      - "1337:1337"
+    volumes:
+      # Persist uploads directory - images won't be lost on restart
+      - ./public/uploads:/app/public/uploads
+      # Mount source code for hot-reload (optional, uncomment if needed)
+      # - ./src:/app/src
+      # - ./config:/app/config
+    env_file:
+      - .env.dev
+    environment:
+      - NODE_ENV=development
+      - HOST=0.0.0.0
+      - PORT=1337
+      # Override database connection to use the postgres service
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:1337/_health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+volumes:
+  # Named volume for PostgreSQL data (separate from production)
+  postgres_dev_data:
+    driver: local
