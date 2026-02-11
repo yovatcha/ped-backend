@@ -3,29 +3,6 @@
 const axios = require("axios");
 
 module.exports = {
-  async login(ctx) {
-    const lineChannelId = process.env.LINE_CHANNEL_ID;
-    const callbackUrl = process.env.LINE_CALLBACK_URL;
-
-    if (!lineChannelId || !callbackUrl) {
-      return ctx.badRequest("LINE configuration is missing");
-    }
-
-    // Generate a random state for CSRF protection
-    const state = Math.random().toString(36).substring(7);
-
-    // Build LINE authorization URL
-    const authUrl = new URL("https://access.line.me/oauth2/v2.1/authorize");
-    authUrl.searchParams.append("response_type", "code");
-    authUrl.searchParams.append("client_id", lineChannelId);
-    authUrl.searchParams.append("redirect_uri", callbackUrl);
-    authUrl.searchParams.append("state", state);
-    authUrl.searchParams.append("scope", "profile openid email");
-
-    // Redirect to LINE authorization page
-    ctx.redirect(authUrl.toString());
-  },
-
   async callback(ctx) {
     const { code, state, error } = ctx.query;
 

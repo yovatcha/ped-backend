@@ -4,16 +4,6 @@ module.exports = {
   routes: [
     {
       method: "GET",
-      path: "/line-auth/login",
-      handler: "line-auth.login",
-      config: {
-        auth: false,
-        policies: [],
-        middlewares: [],
-      },
-    },
-    {
-      method: "GET",
       path: "/line-auth/callback",
       handler: "line-auth.callback",
       config: {
