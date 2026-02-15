@@ -65,23 +65,31 @@ module.exports = {
         }));
       }
 
-      // NEW: Handle collection/coupon format from n8n (for generate_all action)
-      // This flexible format supports: 1 voucher + up to 5 collections + up to 5 coupons per collection (25 total coupons)
+      // Handle collection/coupon format from n8n
+      // Supports TWO formats:
+      // 1. Legacy format (image_preview): collection1_url, coupon1_1_url
+      // 2. New format (generate_all): collection1ImagePreview, coupon1_1ImagePreview
       const collectionCouponImages = [];
 
-      // Add voucher image (n8n sends as voucherImagePreview)
+      // Add voucher image
       if (otherFields.voucherImagePreview) {
         collectionCouponImages.push({
           type: "voucher",
           url: otherFields.voucherImagePreview,
           name: "Generated Voucher",
         });
+      } else if (otherFields.voucherImageUrl) {
+        // Legacy format for image_preview
+        collectionCouponImages.push({
+          type: "voucher",
+          url: otherFields.voucherImageUrl,
+          name: "Generated Voucher",
+        });
       }
 
-      // Parse collection and coupon image URLs from n8n format
-      // n8n sends: collection1ImagePreview, collection2ImagePreview, ..., collection5ImagePreview
-      // n8n sends: coupon1_1ImagePreview, coupon1_2ImagePreview, ..., coupon5_5ImagePreview
+      // Parse collection and coupon URLs from n8n
       Object.keys(otherFields).forEach((key) => {
+        // New format: collection1ImagePreview, collection2ImagePreview, ..., collection5ImagePreview
         if (key.match(/^collection\d+ImagePreview$/)) {
           const collectionNum = key.match(/collection(\d+)ImagePreview/)[1];
           collectionCouponImages.push({
@@ -92,7 +100,21 @@ module.exports = {
               `Collection ${collectionNum}`,
             collectionIndex: parseInt(collectionNum),
           });
-        } else if (key.match(/^coupon\d+_\d+ImagePreview$/)) {
+        }
+        // Legacy format: collection1_url, collection2_url, etc.
+        else if (key.match(/^collection\d+_url$/)) {
+          const collectionNum = key.match(/collection(\d+)_url/)[1];
+          collectionCouponImages.push({
+            type: "collection",
+            url: otherFields[key],
+            name:
+              otherFields[`collection${collectionNum}_name`] ||
+              `Collection ${collectionNum}`,
+            collectionIndex: parseInt(collectionNum),
+          });
+        }
+        // New format: coupon1_1ImagePreview, coupon1_2ImagePreview, ..., coupon5_5ImagePreview
+        else if (key.match(/^coupon\d+_\d+ImagePreview$/)) {
           const match = key.match(/coupon(\d+)_(\d+)ImagePreview/);
           const collectionNum = match[1];
           const couponNum = match[2];
@@ -101,6 +123,21 @@ module.exports = {
             url: otherFields[key],
             name:
               otherFields[`coupon${collectionNum}_${couponNum}Name`] ||
+              `Coupon ${couponNum} (Collection ${collectionNum})`,
+            collectionIndex: parseInt(collectionNum),
+            couponIndex: parseInt(couponNum),
+          });
+        }
+        // Legacy format: coupon1_1_url, coupon2_1_url, etc.
+        else if (key.match(/^coupon\d+_\d+_url$/)) {
+          const match = key.match(/coupon(\d+)_(\d+)_url/);
+          const collectionNum = match[1];
+          const couponNum = match[2];
+          collectionCouponImages.push({
+            type: "coupon",
+            url: otherFields[key],
+            name:
+              otherFields[`coupon${collectionNum}_${couponNum}_name`] ||
               `Coupon ${couponNum} (Collection ${collectionNum})`,
             collectionIndex: parseInt(collectionNum),
             couponIndex: parseInt(couponNum),
