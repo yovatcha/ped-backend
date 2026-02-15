@@ -20,7 +20,7 @@ module.exports = {
 
       console.log(
         "📬 Received callback:",
-        JSON.stringify(requestBody, null, 2)
+        JSON.stringify(requestBody, null, 2),
       );
 
       if (!requestId) {
@@ -45,7 +45,8 @@ module.exports = {
 
       let normalizedImages = [];
 
-      // Handle existing formats
+      // Handle legacy formats (for generate_voucher and image_preview actions)
+      // These use simple imageUrl or imageUrls fields
       if (generatedImages && Array.isArray(generatedImages)) {
         normalizedImages = generatedImages;
       } else if (imageUrl) {
@@ -64,36 +65,43 @@ module.exports = {
         }));
       }
 
-      // NEW: Handle collection/coupon format
+      // NEW: Handle collection/coupon format from n8n (for generate_all action)
+      // This flexible format supports: 1 voucher + up to 5 collections + up to 5 coupons per collection (25 total coupons)
       const collectionCouponImages = [];
 
-      // Add voucher image
-      if (otherFields.voucherImageUrl) {
+      // Add voucher image (n8n sends as voucherImagePreview)
+      if (otherFields.voucherImagePreview) {
         collectionCouponImages.push({
           type: "voucher",
-          url: otherFields.voucherImageUrl,
+          url: otherFields.voucherImagePreview,
           name: "Generated Voucher",
         });
       }
 
-      // Parse collection URLs (collection1_url, collection2_url, ...)
+      // Parse collection and coupon image URLs from n8n format
+      // n8n sends: collection1ImagePreview, collection2ImagePreview, ..., collection5ImagePreview
+      // n8n sends: coupon1_1ImagePreview, coupon1_2ImagePreview, ..., coupon5_5ImagePreview
       Object.keys(otherFields).forEach((key) => {
-        if (key.match(/^collection\d+_url$/)) {
-          const collectionNum = key.match(/collection(\d+)_url/)[1];
+        if (key.match(/^collection\d+ImagePreview$/)) {
+          const collectionNum = key.match(/collection(\d+)ImagePreview/)[1];
           collectionCouponImages.push({
             type: "collection",
             url: otherFields[key],
-            name: `Collection ${collectionNum}`,
+            name:
+              otherFields[`collection${collectionNum}Name`] ||
+              `Collection ${collectionNum}`,
             collectionIndex: parseInt(collectionNum),
           });
-        } else if (key.match(/^coupon\d+_\d+_url$/)) {
-          const match = key.match(/coupon(\d+)_(\d+)_url/);
+        } else if (key.match(/^coupon\d+_\d+ImagePreview$/)) {
+          const match = key.match(/coupon(\d+)_(\d+)ImagePreview/);
           const collectionNum = match[1];
           const couponNum = match[2];
           collectionCouponImages.push({
             type: "coupon",
             url: otherFields[key],
-            name: `Coupon ${couponNum} (Collection ${collectionNum})`,
+            name:
+              otherFields[`coupon${collectionNum}_${couponNum}Name`] ||
+              `Coupon ${couponNum} (Collection ${collectionNum})`,
             collectionIndex: parseInt(collectionNum),
             couponIndex: parseInt(couponNum),
           });
