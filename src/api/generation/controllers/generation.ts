@@ -266,13 +266,9 @@ module.exports = {
    * POST /api/generation/upload-from-url
    * Server-side proxy: downloads an external image URL and uploads it to Strapi
    * media library. Bypasses browser CORS restrictions entirely.
-   *
-   * Body: { url: string, filename: string }
-   * Returns: { id, url, name } of the uploaded Strapi media file
    */
   async uploadFromUrl(ctx) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const fs = require("fs") as typeof import("fs");
+    const { writeFileSync, unlinkSync, existsSync } = require("fs");
     let tmpFilePath: string | null = null;
 
     try {
@@ -280,39 +276,76 @@ module.exports = {
         url: string;
         filename: string;
       };
+      console.log(
+        "[uploadFromUrl] Step 1 - received url:",
+        url?.slice(0, 100),
+        "filename:",
+        filename,
+      );
 
       if (!url) {
         ctx.status = 400;
         return (ctx.body = { success: false, error: "url is required" });
       }
 
-      console.log(`📥 Proxy downloading image: ${url}`);
-
-      // Download image server-side — no browser CORS restrictions here
+      // Step 2: Download image server-side (no CORS)
       const imageRes = await fetch(url);
+      console.log(
+        "[uploadFromUrl] Step 2 - fetch status:",
+        imageRes.status,
+        "ok:",
+        imageRes.ok,
+      );
       if (!imageRes.ok) {
         ctx.status = 502;
         return (ctx.body = {
           success: false,
-          error: `Failed to fetch image from source: ${imageRes.status}`,
+          error: `Failed to fetch image: ${imageRes.status}`,
         });
       }
 
       const arrayBuffer = await imageRes.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const contentType = imageRes.headers.get("content-type") || "image/png";
-      const safeFilename = filename || `generated-${Date.now()}.png`;
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const safeFilename = filename
+        ? filename.replace(/[^a-zA-Z0-9._-]/g, "_")
+        : `generated-${uniqueId}.png`;
 
-      // Strapi's upload service requires a real file path on disk, not an in-memory buffer.
-      // Write to /tmp with a unique filename, upload, then clean up in finally.
-      tmpFilePath = `/tmp/strapi-upload-${Date.now()}-${Math.random().toString(36).slice(2)}.png`;
-      fs.writeFileSync(tmpFilePath, buffer);
+      console.log(
+        "[uploadFromUrl] Step 3 - buffer size:",
+        buffer.length,
+        "contentType:",
+        contentType,
+        "safeFilename:",
+        safeFilename,
+      );
 
+      // Step 3: Write to /app/public/ which is volume-mounted and definitely writable
+      tmpFilePath = `/app/public/tmp_upload_${uniqueId}.png`;
+      console.log(
+        "[uploadFromUrl] Step 4 - writing temp file to:",
+        tmpFilePath,
+      );
+      writeFileSync(tmpFilePath, buffer);
+      console.log(
+        "[uploadFromUrl] Step 4 - temp file written, exists:",
+        existsSync(tmpFilePath),
+      );
+
+      // Step 4: Upload via Strapi upload service
+      console.log("[uploadFromUrl] Step 5 - calling strapi upload service");
       const uploadedFiles = await strapi
         .plugin("upload")
         .service("upload")
         .upload({
-          data: {},
+          data: {
+            fileInfo: {
+              name: safeFilename,
+              alternativeText: "",
+              caption: "",
+            },
+          },
           files: {
             path: tmpFilePath,
             name: safeFilename,
@@ -321,9 +354,14 @@ module.exports = {
           },
         });
 
-      const uploadedFile = uploadedFiles[0];
-      console.log(`✅ Image uploaded to Strapi media: id=${uploadedFile.id}`);
+      console.log(
+        "[uploadFromUrl] Step 5 - upload result count:",
+        uploadedFiles?.length,
+        "first id:",
+        uploadedFiles?.[0]?.id,
+      );
 
+      const uploadedFile = uploadedFiles[0];
       ctx.body = {
         success: true,
         id: uploadedFile.id,
@@ -331,20 +369,15 @@ module.exports = {
         name: uploadedFile.name,
       };
     } catch (error) {
-      console.error("❌ uploadFromUrl error:", error);
+      console.error("[uploadFromUrl] ❌ Error:", error.message);
+      console.error("[uploadFromUrl] Stack:", error.stack);
       ctx.status = 500;
-      ctx.body = {
-        success: false,
-        error: error.message,
-      };
+      ctx.body = { success: false, error: error.message };
     } finally {
-      // Always clean up the temp file
       if (tmpFilePath) {
         try {
-          require("fs").unlinkSync(tmpFilePath);
-        } catch (_) {
-          // ignore cleanup errors
-        }
+          unlinkSync(tmpFilePath);
+        } catch (_) {}
       }
     }
   },
