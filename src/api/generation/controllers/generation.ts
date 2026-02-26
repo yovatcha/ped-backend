@@ -1,10 +1,8 @@
-// src/api/generation/controllers/generation.js
+// src/api/generation/controllers/generation.ts
 
 "use strict";
 
 module.exports = {
-  // src/api/generation/controllers/generation.js
-
   async callback(ctx) {
     try {
       const requestBody = ctx.request.body;
@@ -46,7 +44,6 @@ module.exports = {
       let normalizedImages = [];
 
       // Handle legacy formats (for generate_voucher and image_preview actions)
-      // These use simple imageUrl or imageUrls fields
       if (generatedImages && Array.isArray(generatedImages)) {
         normalizedImages = generatedImages;
       } else if (imageUrl) {
@@ -66,9 +63,6 @@ module.exports = {
       }
 
       // Handle collection/coupon format from n8n
-      // Supports TWO formats:
-      // 1. Legacy format (image_preview): collection1_url, coupon1_1_url
-      // 2. New format (generate_all): collection1ImagePreview, coupon1_1ImagePreview
       const collectionCouponImages = [];
 
       // Add voucher image
@@ -79,7 +73,6 @@ module.exports = {
           name: "Generated Voucher",
         });
       } else if (otherFields.voucherImageUrl) {
-        // Legacy format for image_preview
         collectionCouponImages.push({
           type: "voucher",
           url: otherFields.voucherImageUrl,
@@ -89,7 +82,6 @@ module.exports = {
 
       // Parse collection and coupon URLs from n8n
       Object.keys(otherFields).forEach((key) => {
-        // New format: collection1ImagePreview, collection2ImagePreview, ..., collection5ImagePreview
         if (key.match(/^collection\d+ImagePreview$/)) {
           const collectionNum = key.match(/collection(\d+)ImagePreview/)[1];
           collectionCouponImages.push({
@@ -100,9 +92,7 @@ module.exports = {
               `Collection ${collectionNum}`,
             collectionIndex: parseInt(collectionNum),
           });
-        }
-        // Legacy format: collection1_url, collection2_url, etc.
-        else if (key.match(/^collection\d+_url$/)) {
+        } else if (key.match(/^collection\d+_url$/)) {
           const collectionNum = key.match(/collection(\d+)_url/)[1];
           collectionCouponImages.push({
             type: "collection",
@@ -112,9 +102,7 @@ module.exports = {
               `Collection ${collectionNum}`,
             collectionIndex: parseInt(collectionNum),
           });
-        }
-        // New format: coupon1_1ImagePreview, coupon1_2ImagePreview, ..., coupon5_5ImagePreview
-        else if (key.match(/^coupon\d+_\d+ImagePreview$/)) {
+        } else if (key.match(/^coupon\d+_\d+ImagePreview$/)) {
           const match = key.match(/coupon(\d+)_(\d+)ImagePreview/);
           const collectionNum = match[1];
           const couponNum = match[2];
@@ -127,9 +115,7 @@ module.exports = {
             collectionIndex: parseInt(collectionNum),
             couponIndex: parseInt(couponNum),
           });
-        }
-        // Legacy format: coupon1_1_url, coupon2_1_url, etc.
-        else if (key.match(/^coupon\d+_\d+_url$/)) {
+        } else if (key.match(/^coupon\d+_\d+_url$/)) {
           const match = key.match(/coupon(\d+)_(\d+)_url/);
           const collectionNum = match[1];
           const couponNum = match[2];
@@ -145,7 +131,6 @@ module.exports = {
         }
       });
 
-      // Use collection/coupon images if present
       if (collectionCouponImages.length > 0) {
         normalizedImages = collectionCouponImages;
       }
@@ -162,20 +147,20 @@ module.exports = {
       const existingGeneration = existingGenerations[0];
 
       if (existingGeneration) {
-        const updateData = {
-          status: normalizedStatus || existingGeneration.status,
-          generatedImages:
-            normalizedImages.length > 0
-              ? normalizedImages
-              : existingGeneration.generatedImages,
-          error: error || null,
-          completedAt:
-            normalizedStatus === "completed" ? new Date().toISOString() : null,
-        };
-
         await strapi.documents("api::generation.generation").update({
           documentId: existingGeneration.documentId,
-          data: updateData,
+          data: {
+            status: normalizedStatus || existingGeneration.status,
+            generatedImages:
+              normalizedImages.length > 0
+                ? normalizedImages
+                : existingGeneration.generatedImages,
+            error: error || null,
+            completedAt:
+              normalizedStatus === "completed"
+                ? new Date().toISOString()
+                : null,
+          },
         });
         console.log("✅ Generation updated:", requestId);
       } else {
@@ -203,10 +188,7 @@ module.exports = {
     } catch (error) {
       console.error("❌ Callback error:", error);
       ctx.status = 500;
-      ctx.body = {
-        success: false,
-        error: error.message,
-      };
+      ctx.body = { success: false, error: error.message };
     }
   },
 
@@ -246,122 +228,100 @@ module.exports = {
         completedAt: generation.completedAt,
       };
 
-      // Include aiData if it exists and if responseBody allows extra fields
       if (Object.prototype.hasOwnProperty.call(generation, "aiData")) {
         (responseBody as Record<string, unknown>).aiData = generation.aiData;
       }
 
       ctx.body = responseBody;
     } catch (error) {
-      console.error("\u274c Status check error:", error);
+      console.error("❌ Status check error:", error);
       ctx.status = 500;
-      ctx.body = {
-        success: false,
-        error: error.message,
-      };
+      ctx.body = { success: false, error: error.message };
     }
   },
 
   /**
    * POST /api/generation/upload-from-url
-   * Server-side proxy: downloads an external image URL and uploads it to Strapi
-   * media library. Bypasses browser CORS restrictions entirely.
+   * Downloads an external image URL server-side (bypassing browser CORS)
+   * then re-uploads it to Strapi via a loopback HTTP POST to /api/upload.
+   * No filesystem operations — works entirely in memory (Node 18+ FormData + Blob).
+   *
+   * Body: { url, filename, token }
+   * Returns: { id, url, name }
    */
   async uploadFromUrl(ctx) {
-    const { writeFileSync, unlinkSync, existsSync } = require("fs");
-    let tmpFilePath: string | null = null;
-
     try {
-      const { url, filename } = ctx.request.body as {
+      const { url, filename, token } = ctx.request.body as {
         url: string;
         filename: string;
+        token: string;
       };
-      console.log(
-        "[uploadFromUrl] Step 1 - received url:",
-        url?.slice(0, 100),
-        "filename:",
-        filename,
-      );
 
       if (!url) {
         ctx.status = 400;
         return (ctx.body = { success: false, error: "url is required" });
       }
+      if (!token) {
+        ctx.status = 400;
+        return (ctx.body = { success: false, error: "token is required" });
+      }
 
-      // Step 2: Download image server-side (no CORS)
+      // Step 1: Download image server-side — no CORS restrictions in Node.js
+      console.log("[uploadFromUrl] Downloading:", url.slice(0, 100));
       const imageRes = await fetch(url);
-      console.log(
-        "[uploadFromUrl] Step 2 - fetch status:",
-        imageRes.status,
-        "ok:",
-        imageRes.ok,
-      );
       if (!imageRes.ok) {
         ctx.status = 502;
         return (ctx.body = {
           success: false,
-          error: `Failed to fetch image: ${imageRes.status}`,
+          error: `Failed to fetch image from source: ${imageRes.status}`,
         });
       }
 
       const arrayBuffer = await imageRes.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
       const contentType = imageRes.headers.get("content-type") || "image/png";
-      const uniqueId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      const safeFilename = filename
-        ? filename.replace(/[^a-zA-Z0-9._-]/g, "_")
-        : `generated-${uniqueId}.png`;
-
+      const safeFilename = (filename || `generated-${Date.now()}.png`).replace(
+        /[^a-zA-Z0-9._-]/g,
+        "_",
+      );
       console.log(
-        "[uploadFromUrl] Step 3 - buffer size:",
-        buffer.length,
-        "contentType:",
+        "[uploadFromUrl] Downloaded",
+        arrayBuffer.byteLength,
+        "bytes as",
         contentType,
-        "safeFilename:",
-        safeFilename,
       );
 
-      // Step 3: Write to /app/public/ which is volume-mounted and definitely writable
-      tmpFilePath = `/app/public/tmp_upload_${uniqueId}.png`;
-      console.log(
-        "[uploadFromUrl] Step 4 - writing temp file to:",
-        tmpFilePath,
-      );
-      writeFileSync(tmpFilePath, buffer);
-      console.log(
-        "[uploadFromUrl] Step 4 - temp file written, exists:",
-        existsSync(tmpFilePath),
-      );
+      // Step 2: Re-upload via loopback POST to Strapi's own /api/upload endpoint.
+      // FormData + Blob works in Node 18+ with no filesystem operations required.
+      const blob = new Blob([arrayBuffer], { type: contentType });
+      const form = new FormData();
+      form.append("files", blob, safeFilename);
 
-      // Step 4: Upload via Strapi upload service
-      console.log("[uploadFromUrl] Step 5 - calling strapi upload service");
-      const uploadedFiles = await strapi
-        .plugin("upload")
-        .service("upload")
-        .upload({
-          data: {
-            fileInfo: {
-              name: safeFilename,
-              alternativeText: "",
-              caption: "",
-            },
-          },
-          files: {
-            path: tmpFilePath,
-            name: safeFilename,
-            type: contentType,
-            size: buffer.length,
-          },
+      const port = strapi.config.get("server.port", 1337);
+      const uploadRes = await fetch(`http://localhost:${port}/api/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // Do NOT set Content-Type — fetch sets it automatically with the correct multipart boundary
+        },
+        body: form,
+      });
+
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.json().catch(() => ({}));
+        console.error("[uploadFromUrl] Strapi upload API error:", errBody);
+        ctx.status = 502;
+        return (ctx.body = {
+          success: false,
+          error:
+            (errBody as any)?.error?.message ||
+            `Strapi upload failed: ${uploadRes.status}`,
         });
+      }
 
-      console.log(
-        "[uploadFromUrl] Step 5 - upload result count:",
-        uploadedFiles?.length,
-        "first id:",
-        uploadedFiles?.[0]?.id,
-      );
-
+      const uploadedFiles = await uploadRes.json();
       const uploadedFile = uploadedFiles[0];
+      console.log("[uploadFromUrl] Success, media id:", uploadedFile?.id);
+
       ctx.body = {
         success: true,
         id: uploadedFile.id,
@@ -369,16 +329,9 @@ module.exports = {
         name: uploadedFile.name,
       };
     } catch (error) {
-      console.error("[uploadFromUrl] ❌ Error:", error.message);
-      console.error("[uploadFromUrl] Stack:", error.stack);
+      console.error("[uploadFromUrl] Error:", error.message);
       ctx.status = 500;
       ctx.body = { success: false, error: error.message };
-    } finally {
-      if (tmpFilePath) {
-        try {
-          unlinkSync(tmpFilePath);
-        } catch (_) {}
-      }
     }
   },
 };
