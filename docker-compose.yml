@@ -6,12 +6,10 @@ services:
     ports:
       - "1337:1337"
     volumes:
-      # Persist uploads directory - images won't be lost on restart
-      - ./public/uploads:/app/public/uploads
-      # Persist database - SQLite data won't be lost on restart
-      - ./.tmp:/app/.tmp
+      # Named volume — persists across Coolify redeploys
+      - strapi_uploads:/app/public/uploads
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - HOST=0.0.0.0
       - PORT=1337
     restart: unless-stopped
@@ -21,3 +19,7 @@ services:
       timeout: 10s
       start_period: 60s
       retries: 3
+
+volumes:
+  strapi_uploads:
+    driver: local
