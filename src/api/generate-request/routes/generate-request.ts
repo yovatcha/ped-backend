@@ -7,7 +7,7 @@ module.exports = {
       path: "/generate-request/my-status",
       handler: "generate-request.getMyStatus",
       config: {
-        auth: { scope: [] },
+        auth: false, // Auth is handled manually in the controller via ctx.state.user
         policies: [],
         middlewares: [],
       },
@@ -17,7 +17,7 @@ module.exports = {
       path: "/generate-request/submit",
       handler: "generate-request.submitRequest",
       config: {
-        auth: { scope: [] },
+        auth: false, // Auth is handled manually in the controller via ctx.state.user
         policies: [],
         middlewares: [],
       },
