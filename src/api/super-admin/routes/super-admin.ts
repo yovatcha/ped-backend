@@ -7,7 +7,7 @@ module.exports = {
       path: "/super-admin/users",
       handler: "super-admin.listUsers",
       config: {
-        auth: { scope: [] },
+        auth: false,
         policies: [],
         middlewares: [],
       },
@@ -17,7 +17,7 @@ module.exports = {
       path: "/super-admin/impersonate/:userId",
       handler: "super-admin.impersonate",
       config: {
-        auth: { scope: [] },
+        auth: false,
         policies: [],
         middlewares: [],
       },
@@ -27,7 +27,7 @@ module.exports = {
       path: "/super-admin/generate-requests",
       handler: "super-admin.listGenerateRequests",
       config: {
-        auth: { scope: [] },
+        auth: false,
         policies: [],
         middlewares: [],
       },
@@ -37,7 +37,7 @@ module.exports = {
       path: "/super-admin/generate-requests/:id/approve",
       handler: "super-admin.approveRequest",
       config: {
-        auth: { scope: [] },
+        auth: false,
         policies: [],
         middlewares: [],
       },
@@ -47,7 +47,7 @@ module.exports = {
       path: "/super-admin/generate-requests/:id/deny",
       handler: "super-admin.denyRequest",
       config: {
-        auth: { scope: [] },
+        auth: false,
         policies: [],
         middlewares: [],
       },

@@ -1,34 +1,54 @@
 "use strict";
 
+/**
+ * Manually resolves the authenticated user from the Bearer token.
+ * Needed because these routes use auth: false to bypass Strapi RBAC.
+ */
+async function getAuthUser(ctx) {
+  const authHeader = ctx.request.headers.authorization as string | undefined;
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  const token = authHeader.replace("Bearer ", "").trim();
+  try {
+    const jwtService = strapi.plugin("users-permissions").service("jwt");
+    const payload = await jwtService.verify(token);
+    const user = await strapi.entityService.findOne(
+      "plugin::users-permissions.user",
+      payload.id,
+      { populate: [] },
+    );
+    return user ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Verify caller is superadmin, returns the full user record or null.
+ */
+async function getSuperAdminCaller(ctx) {
+  const caller = await getAuthUser(ctx);
+  if (!caller) return null;
+
+  const callerWithRole = await strapi.db
+    .query("plugin::users-permissions.user")
+    .findOne({ where: { id: caller.id }, populate: ["role"] });
+
+  if (callerWithRole?.role?.type !== "superadmin") return null;
+  return callerWithRole;
+}
+
 module.exports = {
   /**
    * GET /api/super-admin/users
-   * Returns all users (id, username, email, role).
-   * Only callable by a user whose role type === 'superadmin'.
    */
   async listUsers(ctx) {
-    const caller = ctx.state.user;
-    if (!caller) return ctx.unauthorized("Not logged in");
+    const caller = await getSuperAdminCaller(ctx);
+    if (!caller) return ctx.unauthorized("Not logged in or not super admin");
 
-    // Verify caller has superadmin role
-    const callerWithRole = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({
-        where: { id: caller.id },
-        populate: ["role"],
-      });
-
-    if (callerWithRole?.role?.type !== "superadmin") {
-      return ctx.forbidden("Super admin access required");
-    }
-
-    // Fetch all users
     const users = await strapi.db
       .query("plugin::users-permissions.user")
-      .findMany({
-        populate: ["role"],
-        orderBy: { createdAt: "asc" },
-      });
+      .findMany({ populate: ["role"], orderBy: { createdAt: "asc" } });
 
     const sanitized = users.map((u: any) => ({
       id: u.id,
@@ -48,47 +68,25 @@ module.exports = {
 
   /**
    * POST /api/super-admin/impersonate/:userId
-   * Issues a JWT for the target user so the super admin can act as them.
    */
   async impersonate(ctx) {
-    const caller = ctx.state.user;
-    if (!caller) return ctx.unauthorized("Not logged in");
-
-    // Verify caller has superadmin role
-    const callerWithRole = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({
-        where: { id: caller.id },
-        populate: ["role"],
-      });
-
-    if (callerWithRole?.role?.type !== "superadmin") {
-      return ctx.forbidden("Super admin access required");
-    }
+    const caller = await getSuperAdminCaller(ctx);
+    if (!caller) return ctx.unauthorized("Not logged in or not super admin");
 
     const targetUserId = parseInt(ctx.params.userId, 10);
     if (!targetUserId || isNaN(targetUserId)) {
       return ctx.badRequest("Invalid user ID");
     }
 
-    // Fetch target user
     const targetUser = await strapi.db
       .query("plugin::users-permissions.user")
-      .findOne({
-        where: { id: targetUserId },
-        populate: ["role"],
-      });
+      .findOne({ where: { id: targetUserId }, populate: ["role"] });
 
-    if (!targetUser) {
-      return ctx.notFound("Target user not found");
-    }
-
-    // Prevent impersonating another superadmin
+    if (!targetUser) return ctx.notFound("Target user not found");
     if (targetUser?.role?.type === "superadmin") {
       return ctx.forbidden("Cannot impersonate another super admin");
     }
 
-    // Issue JWT for the target user
     const jwt = strapi.plugins["users-permissions"].services.jwt.issue({
       id: targetUser.id,
     });
@@ -105,26 +103,14 @@ module.exports = {
 
   /**
    * GET /api/super-admin/generate-requests
-   * List all generate-access requests with user info.
    */
   async listGenerateRequests(ctx) {
-    const caller = ctx.state.user;
-    if (!caller) return ctx.unauthorized("Not logged in");
-
-    const callerWithRole = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({ where: { id: caller.id }, populate: ["role"] });
-
-    if (callerWithRole?.role?.type !== "superadmin") {
-      return ctx.forbidden("Super admin access required");
-    }
+    const caller = await getSuperAdminCaller(ctx);
+    if (!caller) return ctx.unauthorized("Not logged in or not super admin");
 
     const requests = await strapi.db
       .query("api::generate-request.generate-request")
-      .findMany({
-        populate: ["user"],
-        orderBy: { requestedAt: "desc" },
-      });
+      .findMany({ populate: ["user"], orderBy: { requestedAt: "desc" } });
 
     const sanitized = requests.map((r: any) => ({
       id: r.id,
@@ -145,16 +131,8 @@ module.exports = {
    * POST /api/super-admin/generate-requests/:id/approve
    */
   async approveRequest(ctx) {
-    const caller = ctx.state.user;
-    if (!caller) return ctx.unauthorized("Not logged in");
-
-    const callerWithRole = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({ where: { id: caller.id }, populate: ["role"] });
-
-    if (callerWithRole?.role?.type !== "superadmin") {
-      return ctx.forbidden("Super admin access required");
-    }
+    const caller = await getSuperAdminCaller(ctx);
+    if (!caller) return ctx.unauthorized("Not logged in or not super admin");
 
     const requestId = parseInt(ctx.params.id, 10);
     if (!requestId || isNaN(requestId)) return ctx.badRequest("Invalid ID");
@@ -166,7 +144,7 @@ module.exports = {
         data: {
           status: "approved",
           reviewedAt: new Date().toISOString(),
-          reviewedBy: callerWithRole.username,
+          reviewedBy: caller.username,
         },
       });
 
@@ -177,16 +155,8 @@ module.exports = {
    * POST /api/super-admin/generate-requests/:id/deny
    */
   async denyRequest(ctx) {
-    const caller = ctx.state.user;
-    if (!caller) return ctx.unauthorized("Not logged in");
-
-    const callerWithRole = await strapi.db
-      .query("plugin::users-permissions.user")
-      .findOne({ where: { id: caller.id }, populate: ["role"] });
-
-    if (callerWithRole?.role?.type !== "superadmin") {
-      return ctx.forbidden("Super admin access required");
-    }
+    const caller = await getSuperAdminCaller(ctx);
+    if (!caller) return ctx.unauthorized("Not logged in or not super admin");
 
     const requestId = parseInt(ctx.params.id, 10);
     if (!requestId || isNaN(requestId)) return ctx.badRequest("Invalid ID");
@@ -198,7 +168,7 @@ module.exports = {
         data: {
           status: "denied",
           reviewedAt: new Date().toISOString(),
-          reviewedBy: callerWithRole.username,
+          reviewedBy: caller.username,
         },
       });
 
