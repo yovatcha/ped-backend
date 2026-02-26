@@ -271,6 +271,10 @@ module.exports = {
    * Returns: { id, url, name } of the uploaded Strapi media file
    */
   async uploadFromUrl(ctx) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require("fs") as typeof import("fs");
+    let tmpFilePath: string | null = null;
+
     try {
       const { url, filename } = ctx.request.body as {
         url: string;
@@ -282,7 +286,7 @@ module.exports = {
         return (ctx.body = { success: false, error: "url is required" });
       }
 
-      console.log(`\ud83d\udce5 Proxy downloading image: ${url}`);
+      console.log(`📥 Proxy downloading image: ${url}`);
 
       // Download image server-side — no browser CORS restrictions here
       const imageRes = await fetch(url);
@@ -299,23 +303,26 @@ module.exports = {
       const contentType = imageRes.headers.get("content-type") || "image/png";
       const safeFilename = filename || `generated-${Date.now()}.png`;
 
-      // Upload to Strapi media library via the upload plugin
+      // Strapi's upload service requires a real file path on disk, not an in-memory buffer.
+      // Write to /tmp with a unique filename, upload, then clean up in finally.
+      tmpFilePath = `/tmp/strapi-upload-${Date.now()}-${Math.random().toString(36).slice(2)}.png`;
+      fs.writeFileSync(tmpFilePath, buffer);
+
       const uploadedFiles = await strapi
         .plugin("upload")
         .service("upload")
         .upload({
           data: {},
           files: {
-            path: null,
+            path: tmpFilePath,
             name: safeFilename,
             type: contentType,
             size: buffer.length,
-            buffer,
           },
         });
 
       const uploadedFile = uploadedFiles[0];
-      console.log(`\u2705 Image uploaded to Strapi media: ${uploadedFile.id}`);
+      console.log(`✅ Image uploaded to Strapi media: id=${uploadedFile.id}`);
 
       ctx.body = {
         success: true,
@@ -324,12 +331,21 @@ module.exports = {
         name: uploadedFile.name,
       };
     } catch (error) {
-      console.error("\u274c uploadFromUrl error:", error);
+      console.error("❌ uploadFromUrl error:", error);
       ctx.status = 500;
       ctx.body = {
         success: false,
         error: error.message,
       };
+    } finally {
+      // Always clean up the temp file
+      if (tmpFilePath) {
+        try {
+          require("fs").unlinkSync(tmpFilePath);
+        } catch (_) {
+          // ignore cleanup errors
+        }
+      }
     }
   },
 };
