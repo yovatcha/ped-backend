@@ -251,19 +251,29 @@ module.exports = {
    */
   async uploadFromUrl(ctx) {
     try {
-      const { url, filename, token } = ctx.request.body as {
+      const { url, filename } = ctx.request.body as {
         url: string;
         filename: string;
-        token: string;
       };
+
+      // Read token from the Authorization header passed by the frontend
+      const authHeader = ctx.request.headers.authorization as
+        | string
+        | undefined;
+      const token = authHeader?.startsWith("Bearer ")
+        ? authHeader.replace("Bearer ", "").trim()
+        : null;
 
       if (!url) {
         ctx.status = 400;
         return (ctx.body = { success: false, error: "url is required" });
       }
       if (!token) {
-        ctx.status = 400;
-        return (ctx.body = { success: false, error: "token is required" });
+        ctx.status = 401;
+        return (ctx.body = {
+          success: false,
+          error: "Authorization header is required",
+        });
       }
 
       // Step 1: Download image server-side — no CORS restrictions in Node.js
