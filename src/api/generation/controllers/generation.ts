@@ -253,7 +253,78 @@ module.exports = {
 
       ctx.body = responseBody;
     } catch (error) {
-      console.error("❌ Status check error:", error);
+      console.error("\u274c Status check error:", error);
+      ctx.status = 500;
+      ctx.body = {
+        success: false,
+        error: error.message,
+      };
+    }
+  },
+
+  /**
+   * POST /api/generation/upload-from-url
+   * Server-side proxy: downloads an external image URL and uploads it to Strapi
+   * media library. Bypasses browser CORS restrictions entirely.
+   *
+   * Body: { url: string, filename: string }
+   * Returns: { id, url, name } of the uploaded Strapi media file
+   */
+  async uploadFromUrl(ctx) {
+    try {
+      const { url, filename } = ctx.request.body as {
+        url: string;
+        filename: string;
+      };
+
+      if (!url) {
+        ctx.status = 400;
+        return (ctx.body = { success: false, error: "url is required" });
+      }
+
+      console.log(`\ud83d\udce5 Proxy downloading image: ${url}`);
+
+      // Download image server-side — no browser CORS restrictions here
+      const imageRes = await fetch(url);
+      if (!imageRes.ok) {
+        ctx.status = 502;
+        return (ctx.body = {
+          success: false,
+          error: `Failed to fetch image from source: ${imageRes.status}`,
+        });
+      }
+
+      const arrayBuffer = await imageRes.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const contentType = imageRes.headers.get("content-type") || "image/png";
+      const safeFilename = filename || `generated-${Date.now()}.png`;
+
+      // Upload to Strapi media library via the upload plugin
+      const uploadedFiles = await strapi
+        .plugin("upload")
+        .service("upload")
+        .upload({
+          data: {},
+          files: {
+            path: null,
+            name: safeFilename,
+            type: contentType,
+            size: buffer.length,
+            buffer,
+          },
+        });
+
+      const uploadedFile = uploadedFiles[0];
+      console.log(`\u2705 Image uploaded to Strapi media: ${uploadedFile.id}`);
+
+      ctx.body = {
+        success: true,
+        id: uploadedFile.id,
+        url: uploadedFile.url,
+        name: uploadedFile.name,
+      };
+    } catch (error) {
+      console.error("\u274c uploadFromUrl error:", error);
       ctx.status = 500;
       ctx.body = {
         success: false,
