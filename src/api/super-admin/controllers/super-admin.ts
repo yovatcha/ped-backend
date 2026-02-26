@@ -102,4 +102,106 @@ module.exports = {
       },
     });
   },
+
+  /**
+   * GET /api/super-admin/generate-requests
+   * List all generate-access requests with user info.
+   */
+  async listGenerateRequests(ctx) {
+    const caller = ctx.state.user;
+    if (!caller) return ctx.unauthorized("Not logged in");
+
+    const callerWithRole = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({ where: { id: caller.id }, populate: ["role"] });
+
+    if (callerWithRole?.role?.type !== "superadmin") {
+      return ctx.forbidden("Super admin access required");
+    }
+
+    const requests = await strapi.db
+      .query("api::generate-request.generate-request")
+      .findMany({
+        populate: ["user"],
+        orderBy: { requestedAt: "desc" },
+      });
+
+    const sanitized = requests.map((r: any) => ({
+      id: r.id,
+      documentId: r.documentId,
+      status: r.status,
+      requestedAt: r.requestedAt,
+      reviewedAt: r.reviewedAt,
+      reviewedBy: r.reviewedBy,
+      user: r.user
+        ? { id: r.user.id, username: r.user.username, email: r.user.email }
+        : null,
+    }));
+
+    return ctx.send({ data: sanitized });
+  },
+
+  /**
+   * POST /api/super-admin/generate-requests/:id/approve
+   */
+  async approveRequest(ctx) {
+    const caller = ctx.state.user;
+    if (!caller) return ctx.unauthorized("Not logged in");
+
+    const callerWithRole = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({ where: { id: caller.id }, populate: ["role"] });
+
+    if (callerWithRole?.role?.type !== "superadmin") {
+      return ctx.forbidden("Super admin access required");
+    }
+
+    const requestId = parseInt(ctx.params.id, 10);
+    if (!requestId || isNaN(requestId)) return ctx.badRequest("Invalid ID");
+
+    const updated = await strapi.db
+      .query("api::generate-request.generate-request")
+      .update({
+        where: { id: requestId },
+        data: {
+          status: "approved",
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: callerWithRole.username,
+        },
+      });
+
+    return ctx.send({ data: updated });
+  },
+
+  /**
+   * POST /api/super-admin/generate-requests/:id/deny
+   */
+  async denyRequest(ctx) {
+    const caller = ctx.state.user;
+    if (!caller) return ctx.unauthorized("Not logged in");
+
+    const callerWithRole = await strapi.db
+      .query("plugin::users-permissions.user")
+      .findOne({ where: { id: caller.id }, populate: ["role"] });
+
+    if (callerWithRole?.role?.type !== "superadmin") {
+      return ctx.forbidden("Super admin access required");
+    }
+
+    const requestId = parseInt(ctx.params.id, 10);
+    if (!requestId || isNaN(requestId)) return ctx.badRequest("Invalid ID");
+
+    const updated = await strapi.db
+      .query("api::generate-request.generate-request")
+      .update({
+        where: { id: requestId },
+        data: {
+          status: "denied",
+          reviewedAt: new Date().toISOString(),
+          reviewedBy: callerWithRole.username,
+        },
+      });
+
+    return ctx.send({ data: updated });
+  },
 };

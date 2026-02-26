@@ -1,0 +1,34 @@
+{
+  "kind": "collectionType",
+  "collectionName": "generate_requests",
+  "info": {
+    "singularName": "generate-request",
+    "pluralName": "generate-requests",
+    "displayName": "Generate Request"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "status": {
+      "type": "enumeration",
+      "enum": ["pending", "approved", "denied"],
+      "default": "pending"
+    },
+    "requestedAt": {
+      "type": "datetime"
+    },
+    "reviewedAt": {
+      "type": "datetime"
+    },
+    "reviewedBy": {
+      "type": "string"
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

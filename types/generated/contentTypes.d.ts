@@ -540,6 +540,43 @@ export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiGenerateRequestGenerateRequest
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'generate_requests';
+  info: {
+    displayName: 'Generate Request';
+    pluralName: 'generate-requests';
+    singularName: 'generate-request';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::generate-request.generate-request'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    requestedAt: Schema.Attribute.DateTime;
+    reviewedAt: Schema.Attribute.DateTime;
+    reviewedBy: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'denied']> &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+  };
+}
+
 export interface ApiGenerationGeneration extends Struct.CollectionTypeSchema {
   collectionName: 'generations';
   info: {
@@ -1197,6 +1234,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::collection.collection': ApiCollectionCollection;
       'api::coupon.coupon': ApiCouponCoupon;
+      'api::generate-request.generate-request': ApiGenerateRequestGenerateRequest;
       'api::generation.generation': ApiGenerationGeneration;
       'api::store.store': ApiStoreStore;
       'api::voucher.voucher': ApiVoucherVoucher;
