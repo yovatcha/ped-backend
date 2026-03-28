@@ -15,7 +15,8 @@
       "type": "string"
     },
     "category": {
-      "type": "string"
+      "type": "integer",
+      "required": true
     },
     "expiredDate": {
       "type": "date"
@@ -25,29 +26,18 @@
     },
     "packageType": {
       "type": "enumeration",
-      "enum": [
-        "package299",
-        "package599",
-        "package899"
-      ]
+      "enum": ["package299", "package599", "package899"]
     },
     "voucherAmount": {
       "type": "enumeration",
-      "enum": [
-        "amount200",
-        "amount500",
-        "amount1000"
-      ]
+      "enum": ["amount200", "amount500", "amount1000"]
     },
     "voucherDetail": {
       "type": "text"
     },
     "commissionType": {
       "type": "enumeration",
-      "enum": [
-        "percent",
-        "fixedRate"
-      ]
+      "enum": ["percent", "fixedRate"]
     },
     "commissionAmount": {
       "type": "integer"
@@ -76,12 +66,7 @@
     "voucherCover": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
+      "allowedTypes": ["images", "files", "videos", "audios"]
     }
   }
 }
