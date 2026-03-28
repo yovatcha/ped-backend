@@ -15,16 +15,7 @@
       "type": "string"
     },
     "category": {
-      "type": "enumeration",
-      "enum": [
-        "restaurant",
-        "retail",
-        "beauty",
-        "health",
-        "education",
-        "entertainment",
-        "other"
-      ]
+      "type": "integer"
     },
     "expiredDate": {
       "type": "date"
