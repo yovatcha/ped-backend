@@ -29,6 +29,11 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user"
+    },
+    "voucher": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::voucher.voucher"
     }
   }
 }

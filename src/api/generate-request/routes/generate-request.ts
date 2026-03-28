@@ -4,10 +4,10 @@ module.exports = {
   routes: [
     {
       method: "GET",
-      path: "/generate-request/my-status",
-      handler: "generate-request.getMyStatus",
+      path: "/generate-request/my-statuses",
+      handler: "generate-request.getMyStatuses",
       config: {
-        auth: false, // Auth is handled manually in the controller via ctx.state.user
+        auth: false, // Auth handled manually via getAuthUser
         policies: [],
         middlewares: [],
       },
@@ -17,7 +17,7 @@ module.exports = {
       path: "/generate-request/submit",
       handler: "generate-request.submitRequest",
       config: {
-        auth: false, // Auth is handled manually in the controller via ctx.state.user
+        auth: false, // Auth handled manually via getAuthUser
         policies: [],
         middlewares: [],
       },

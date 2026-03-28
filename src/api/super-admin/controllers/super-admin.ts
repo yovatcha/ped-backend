@@ -89,7 +89,7 @@ module.exports = {
 
     const requests = await strapi.db
       .query("api::generate-request.generate-request")
-      .findMany({ populate: ["user"], orderBy: { requestedAt: "desc" } });
+      .findMany({ populate: ["user", "voucher"], orderBy: { requestedAt: "desc" } });
 
     const sanitized = requests.map((r: any) => ({
       id: r.id,
@@ -98,6 +98,10 @@ module.exports = {
       requestedAt: r.requestedAt,
       reviewedAt: r.reviewedAt,
       reviewedBy: r.reviewedBy,
+      voucherDocumentId: r.voucher?.documentId ?? null,
+      voucher: r.voucher
+        ? { id: r.voucher.id, documentId: r.voucher.documentId, voucherName: r.voucher.voucherName }
+        : null,
       user: r.user
         ? { id: r.user.id, username: r.user.username, email: r.user.email }
         : null,
@@ -125,6 +129,7 @@ module.exports = {
           reviewedAt: new Date().toISOString(),
           reviewedBy: caller.username,
         },
+        populate: ["user", "voucher"],
       });
 
     return ctx.send({ data: updated });
@@ -149,6 +154,7 @@ module.exports = {
           reviewedAt: new Date().toISOString(),
           reviewedBy: caller.username,
         },
+        populate: ["user", "voucher"],
       });
 
     return ctx.send({ data: updated });
