@@ -15,7 +15,7 @@
       "type": "string"
     },
     "category": {
-      "type": "integer"
+      "type": "string"
     },
     "expiredDate": {
       "type": "date"
