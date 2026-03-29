@@ -26,7 +26,9 @@ module.exports = [
         // Restrict API endpoints to specific origins
         const allowedOrigins = [
           "http://localhost:5173",
+          "https://dev1.superaffiliate.app",
           "https://dev2.superaffiliate.app",
+          "https://dev02.superaffiliate.app",
         ];
         return allowedOrigins;
       },
