@@ -1,6 +1,9 @@
+// src/api/ped/controllers/ped.js
 "use strict";
 
-module.exports = {
+const { createCoreController } = require("@strapi/strapi").factories;
+
+module.exports = createCoreController("api::ped.ped", ({ strapi }) => ({
   async getCategories(ctx) {
     try {
       const response = await fetch(
@@ -39,4 +42,4 @@ module.exports = {
       ctx.throw(500, err);
     }
   },
-};
+}));

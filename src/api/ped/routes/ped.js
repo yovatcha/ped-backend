@@ -1,5 +1,4 @@
-"use strict";
-
+// src/api/ped/routes/ped.js
 module.exports = {
   routes: [
     {
@@ -8,6 +7,8 @@ module.exports = {
       handler: "ped.getCategories",
       config: {
         auth: false,
+        policies: [],
+        middlewares: [],
       },
     },
     {
@@ -16,6 +17,8 @@ module.exports = {
       handler: "ped.sendPed",
       config: {
         auth: false,
+        policies: [],
+        middlewares: [],
       },
     },
   ],
