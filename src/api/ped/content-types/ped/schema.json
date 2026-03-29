@@ -1,0 +1,14 @@
+{
+  "kind": "collectionType",
+  "collectionName": "peds",
+  "info": {
+    "singularName": "ped",
+    "pluralName": "peds",
+    "displayName": "Ped"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {}
+}
