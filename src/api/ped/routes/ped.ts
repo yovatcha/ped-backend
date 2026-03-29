@@ -1,6 +1,9 @@
-// src/api/ped/routes/custom-ped.js
-console.log("✅ custom-ped routes loaded");
+// src/api/ped/routes/ped.js
+"use strict";
 
+const { createCoreRouter } = require("@strapi/strapi").factories;
+
+// Override the core router completely with only our custom routes
 module.exports = {
   routes: [
     {
