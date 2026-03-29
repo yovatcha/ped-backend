@@ -1,9 +1,7 @@
 // src/api/ped/controllers/ped.js
 "use strict";
 
-const { createCoreController } = require("@strapi/strapi").factories;
-
-module.exports = createCoreController("api::ped.ped", ({ strapi }) => ({
+module.exports = {
   async getCategories(ctx) {
     try {
       const response = await fetch(
@@ -13,7 +11,7 @@ module.exports = createCoreController("api::ped.ped", ({ strapi }) => ({
           headers: {
             Authorization: ctx.request.headers.authorization,
           },
-        },
+        }
       );
       const data = await response.json();
       ctx.send(data);
@@ -34,7 +32,7 @@ module.exports = createCoreController("api::ped.ped", ({ strapi }) => ({
             Authorization: ctx.request.headers.authorization,
           },
           body: JSON.stringify(payload),
-        },
+        }
       );
       const data = await response.json();
       ctx.send(data);
@@ -42,4 +40,4 @@ module.exports = createCoreController("api::ped.ped", ({ strapi }) => ({
       ctx.throw(500, err);
     }
   },
-}));
+};

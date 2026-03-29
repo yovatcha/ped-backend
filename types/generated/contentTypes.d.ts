@@ -574,6 +574,7 @@ export interface ApiGenerateRequestGenerateRequest
       'manyToOne',
       'plugin::users-permissions.user'
     >;
+    voucher: Schema.Attribute.Relation<'manyToOne', 'api::voucher.voucher'>;
   };
 }
 
@@ -609,6 +610,30 @@ export interface ApiGenerationGeneration extends Struct.CollectionTypeSchema {
       ['pending', 'processing', 'completed', 'failed']
     > &
       Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPedPed extends Struct.CollectionTypeSchema {
+  collectionName: 'peds';
+  info: {
+    displayName: 'Ped';
+    pluralName: 'peds';
+    singularName: 'ped';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::ped.ped'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -671,17 +696,7 @@ export interface ApiVoucherVoucher extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
-    category: Schema.Attribute.Enumeration<
-      [
-        'restaurant',
-        'retail',
-        'beauty',
-        'health',
-        'education',
-        'entertainment',
-        'other',
-      ]
-    >;
+    category: Schema.Attribute.String;
     collections: Schema.Attribute.Relation<
       'oneToMany',
       'api::collection.collection'
@@ -1236,6 +1251,7 @@ declare module '@strapi/strapi' {
       'api::coupon.coupon': ApiCouponCoupon;
       'api::generate-request.generate-request': ApiGenerateRequestGenerateRequest;
       'api::generation.generation': ApiGenerationGeneration;
+      'api::ped.ped': ApiPedPed;
       'api::store.store': ApiStoreStore;
       'api::voucher.voucher': ApiVoucherVoucher;
       'plugin::content-releases.release': PluginContentReleasesRelease;
