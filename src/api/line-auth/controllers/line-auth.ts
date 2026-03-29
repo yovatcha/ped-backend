@@ -80,6 +80,33 @@ module.exports = {
         displayName: lineProfile.displayName,
       });
 
+      console.log("Step 2.5: Checking user authorization with external API...");
+      try {
+        const authCheckResponse = await axios.post(
+          "https://dev02.superaffiliate.app/api/ped_login_check.php",
+          {
+            uid: lineProfile.userId,
+          }
+        );
+
+        console.log("Authorization API Response:", authCheckResponse.data);
+
+        // Check if the user is allowed to log in
+        if (!authCheckResponse.data || authCheckResponse.data.can_login !== true) {
+          console.error(
+            "User is not authorized:",
+            authCheckResponse.data?.message || "Unknown reason"
+          );
+          return ctx.redirect(`${process.env.FRONTEND_URL}/login?error=not_authorized`);
+        }
+        
+        console.log("User authorized, proceeding with login...");
+      } catch (apiError) {
+        console.error("Error while checking authorization API:", apiError.message);
+        // Redirect to login if the API validation fails
+        return ctx.redirect(`${process.env.FRONTEND_URL}/login?error=auth_check_failed`);
+      }
+
       console.log("Step 3: Finding or creating user in Strapi...");
 
       // Step 3: Find or create user in Strapi
