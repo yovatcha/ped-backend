@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "coupons",
+  "info": {
+    "singularName": "coupon",
+    "pluralName": "coupons",
+    "displayName": "coupon"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "couponName": {
+      "type": "string"
+    },
+    "couponDetail": {
+      "type": "text"
+    },
+    "expiredDate": {
+      "type": "date"
+    },
+    "couponAmount": {
+      "type": "integer"
+    },
+    "couponPrice": {
+      "type": "integer"
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::collection.collection",
+      "inversedBy": "coupons"
+    },
+    "couponCover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  }
+}

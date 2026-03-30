@@ -475,16 +475,16 @@ export interface ApiCollectionCollection extends Struct.CollectionTypeSchema {
     singularName: 'collection';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
+    collectionCover: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    coupons: Schema.Attribute.Relation<'oneToMany', 'api::coupon.coupon'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    image: Schema.Attribute.Media<
-      'images' | 'files' | 'videos' | 'audios',
-      true
-    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -493,12 +493,150 @@ export interface ApiCollectionCollection extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    type: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     value: Schema.Attribute.Float;
     voucher: Schema.Attribute.Relation<'manyToOne', 'api::voucher.voucher'>;
+  };
+}
+
+export interface ApiCouponCoupon extends Struct.CollectionTypeSchema {
+  collectionName: 'coupons';
+  info: {
+    displayName: 'coupon';
+    pluralName: 'coupons';
+    singularName: 'coupon';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    collection: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::collection.collection'
+    >;
+    couponAmount: Schema.Attribute.Integer;
+    couponCover: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    couponDetail: Schema.Attribute.Text;
+    couponName: Schema.Attribute.String;
+    couponPrice: Schema.Attribute.Integer;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    expiredDate: Schema.Attribute.Date;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::coupon.coupon'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiGenerateRequestGenerateRequest
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'generate_requests';
+  info: {
+    displayName: 'Generate Request';
+    pluralName: 'generate-requests';
+    singularName: 'generate-request';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::generate-request.generate-request'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    requestedAt: Schema.Attribute.DateTime;
+    reviewedAt: Schema.Attribute.DateTime;
+    reviewedBy: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['pending', 'approved', 'denied']> &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
+    voucher: Schema.Attribute.Relation<'manyToOne', 'api::voucher.voucher'>;
+  };
+}
+
+export interface ApiGenerationGeneration extends Struct.CollectionTypeSchema {
+  collectionName: 'generations';
+  info: {
+    displayName: 'Generation';
+    pluralName: 'generations';
+    singularName: 'generation';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    aiData: Schema.Attribute.JSON;
+    completedAt: Schema.Attribute.DateTime;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    error: Schema.Attribute.Text;
+    generatedImages: Schema.Attribute.JSON;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::generation.generation'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    requestId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'processing', 'completed', 'failed']
+    > &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiPedPed extends Struct.CollectionTypeSchema {
+  collectionName: 'peds';
+  info: {
+    displayName: 'Ped';
+    pluralName: 'peds';
+    singularName: 'ped';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::ped.ped'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -510,54 +648,40 @@ export interface ApiStoreStore extends Struct.CollectionTypeSchema {
     singularName: 'store';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     address: Schema.Attribute.Text;
+    addressShort: Schema.Attribute.Text;
     agent: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
     >;
-    closeTime: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    district: Schema.Attribute.String;
     email: Schema.Attribute.String;
-    facebook: Schema.Attribute.String;
-    firstName: Schema.Attribute.String;
-    googleMapLink: Schema.Attribute.String;
-    instagram: Schema.Attribute.String;
     lastName: Schema.Attribute.String;
-    lineOA: Schema.Attribute.String;
+    linkCTPCRM: Schema.Attribute.String;
+    linkLineOA: Schema.Attribute.String;
+    lister: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::store.store'> &
       Schema.Attribute.Private;
-    mainBusinessType: Schema.Attribute.Enumeration<
-      [
-        'restaurant',
-        'retail',
-        'beauty',
-        'health',
-        'education',
-        'entertainment',
-        'other',
-      ]
-    >;
-    openCloseDay: Schema.Attribute.JSON;
-    openTime: Schema.Attribute.String;
-    phone: Schema.Attribute.String;
+    name: Schema.Attribute.String;
+    phoneNumber: Schema.Attribute.String;
     position: Schema.Attribute.String;
-    premiumIdLine: Schema.Attribute.String;
+    province: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
-    shopCTPLink: Schema.Attribute.String;
+    storeContactNumber: Schema.Attribute.String;
     storeName: Schema.Attribute.String;
-    storePhone: Schema.Attribute.String;
-    subBusinessType: Schema.Attribute.String;
+    subDistrict: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     vouchers: Schema.Attribute.Relation<'oneToMany', 'api::voucher.voucher'>;
-    website: Schema.Attribute.String;
+    zipCode: Schema.Attribute.String;
   };
 }
 
@@ -569,16 +693,22 @@ export interface ApiVoucherVoucher extends Struct.CollectionTypeSchema {
     singularName: 'voucher';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
+    category: Schema.Attribute.String;
     collections: Schema.Attribute.Relation<
       'oneToMany',
       'api::collection.collection'
     >;
+    commissionAmount: Schema.Attribute.Integer;
+    commissionType: Schema.Attribute.Enumeration<['percent', 'fixedRate']>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    discount: Schema.Attribute.Integer;
+    expiredDate: Schema.Attribute.Date;
+    fullPrice: Schema.Attribute.Integer;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -593,7 +723,12 @@ export interface ApiVoucherVoucher extends Struct.CollectionTypeSchema {
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    voucherAmount: Schema.Attribute.Enumeration<['use200', 'use500', 'use800']>;
+    voucherAmount: Schema.Attribute.Enumeration<
+      ['amount200', 'amount500', 'amount1000']
+    >;
+    voucherCover: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
     voucherDetail: Schema.Attribute.Text;
     voucherEnd: Schema.Attribute.String;
     voucherName: Schema.Attribute.String;
@@ -1113,6 +1248,10 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::collection.collection': ApiCollectionCollection;
+      'api::coupon.coupon': ApiCouponCoupon;
+      'api::generate-request.generate-request': ApiGenerateRequestGenerateRequest;
+      'api::generation.generation': ApiGenerationGeneration;
+      'api::ped.ped': ApiPedPed;
       'api::store.store': ApiStoreStore;
       'api::voucher.voucher': ApiVoucherVoucher;
       'plugin::content-releases.release': PluginContentReleasesRelease;

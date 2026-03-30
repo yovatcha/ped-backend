@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  strapi:
+    build: .
+    ports:
+      - "1337:1337"
+    volumes:
+      # Named volume — persists across Coolify redeploys
+      - strapi_uploads:/app/public/uploads
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=1337
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:1337/_health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+volumes:
+  strapi_uploads:
+    driver: local

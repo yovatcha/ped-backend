@@ -7,31 +7,42 @@
     "displayName": "voucher"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
     "voucherName": {
       "type": "string"
     },
+    "category": {
+      "type": "string"
+    },
+    "expiredDate": {
+      "type": "date"
+    },
+    "fullPrice": {
+      "type": "integer"
+    },
     "packageType": {
       "type": "enumeration",
-      "enum": [
-        "package299",
-        "package599",
-        "package899"
-      ]
+      "enum": ["package299", "package599", "package899"]
+    },
+    "voucherAmount": {
+      "type": "enumeration",
+      "enum": ["amount200", "amount500", "amount1000"]
     },
     "voucherDetail": {
       "type": "text"
     },
-    "voucherAmount": {
+    "commissionType": {
       "type": "enumeration",
-      "enum": [
-        "use200",
-        "use500",
-        "use800"
-      ]
+      "enum": ["percent", "fixedRate"]
+    },
+    "commissionAmount": {
+      "type": "integer"
+    },
+    "discount": {
+      "type": "integer"
     },
     "voucherStart": {
       "type": "string"
@@ -50,6 +61,11 @@
       "relation": "oneToMany",
       "target": "api::collection.collection",
       "mappedBy": "voucher"
+    },
+    "voucherCover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images", "files", "videos", "audios"]
     }
   }
 }

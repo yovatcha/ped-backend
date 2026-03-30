@@ -7,14 +7,11 @@
     "displayName": "collection"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
     "name": {
-      "type": "string"
-    },
-    "type": {
       "type": "string"
     },
     "value": {
@@ -26,15 +23,21 @@
       "target": "api::voucher.voucher",
       "inversedBy": "collections"
     },
-    "image": {
+    "collectionCover": {
       "type": "media",
-      "multiple": true,
+      "multiple": false,
       "allowedTypes": [
         "images",
         "files",
         "videos",
         "audios"
       ]
+    },
+    "coupons": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::coupon.coupon",
+      "mappedBy": "collection"
     }
   }
 }

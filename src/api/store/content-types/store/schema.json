@@ -7,17 +7,23 @@
     "displayName": "store"
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
-    "firstName": {
+    "name": {
       "type": "string"
     },
     "lastName": {
       "type": "string"
     },
-    "phone": {
+    "position": {
+      "type": "string"
+    },
+    "lister": {
+      "type": "string"
+    },
+    "phoneNumber": {
       "type": "string"
     },
     "email": {
@@ -26,58 +32,31 @@
     "storeName": {
       "type": "string"
     },
-    "position": {
-      "type": "string"
-    },
-    "mainBusinessType": {
-      "type": "enumeration",
-      "enum": [
-        "restaurant",
-        "retail",
-        "beauty",
-        "health",
-        "education",
-        "entertainment",
-        "other"
-      ]
-    },
-    "subBusinessType": {
-      "type": "string"
-    },
-    "storePhone": {
+    "storeContactNumber": {
       "type": "string"
     },
     "address": {
       "type": "text"
     },
-    "openCloseDay": {
-      "type": "json"
-    },
-    "openTime": {
+    "province": {
       "type": "string"
     },
-    "closeTime": {
+    "district": {
       "type": "string"
     },
-    "facebook": {
+    "subDistrict": {
       "type": "string"
     },
-    "instagram": {
+    "zipCode": {
       "type": "string"
     },
-    "lineOA": {
+    "addressShort": {
+      "type": "text"
+    },
+    "linkCTPCRM": {
       "type": "string"
     },
-    "premiumIdLine": {
-      "type": "string"
-    },
-    "website": {
-      "type": "string"
-    },
-    "googleMapLink": {
-      "type": "string"
-    },
-    "shopCTPLink": {
+    "linkLineOA": {
       "type": "string"
     },
     "vouchers": {
