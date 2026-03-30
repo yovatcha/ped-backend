@@ -29,6 +29,8 @@ module.exports = [
           "https://dev1.superaffiliate.app",
           "https://dev2.superaffiliate.app",
           "https://dev02.superaffiliate.app",
+          "https://eagle1.superaffiliate.app",
+          "https://oslo.superaffiliate.app",
         ];
         return allowedOrigins;
       },
