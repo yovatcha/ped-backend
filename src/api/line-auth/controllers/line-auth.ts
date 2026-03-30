@@ -84,8 +84,12 @@ module.exports = {
       try {
         const authCheckResponse = await axios.post(
           "https://dev02.superaffiliate.app/api/ped_login_check.php",
+          new URLSearchParams({ uid: lineProfile.userId }),
           {
-            uid: lineProfile.userId,
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              "Authorization": `Bearer ${process.env.PED_API_TOKEN}`,
+            },
           }
         );
 
@@ -103,6 +107,8 @@ module.exports = {
         console.log("User authorized, proceeding with login...");
       } catch (apiError) {
         console.error("Error while checking authorization API:", apiError.message);
+        console.error("Auth API response status:", apiError.response?.status);
+        console.error("Auth API response data:", apiError.response?.data);
         // Redirect to login if the API validation fails
         return ctx.redirect(`${process.env.FRONTEND_URL}/login?error=auth_check_failed`);
       }
