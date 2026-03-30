@@ -15,6 +15,13 @@ module.exports = [
     },
   },
   {
+    name: "strapi::session",
+    config: {
+      secure: true,
+      proxy: true, // ← add this
+    },
+  },
+  {
     name: "strapi::cors",
     config: {
       enabled: true,
