@@ -1,4 +1,5 @@
 module.exports = [
+  "global::trust-proxy",
   "strapi::errors",
   {
     name: "strapi::session",
