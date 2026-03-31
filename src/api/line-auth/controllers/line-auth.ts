@@ -83,7 +83,7 @@ module.exports = {
       console.log("Step 2.5: Checking user authorization with external API...");
       try {
         const authCheckResponse = await axios.post(
-          "https://dev02.superaffiliate.app/api/ped_login_check.php",
+          `${process.env.PED_API_BASE_URL}/api/ped_login_check.php`,
           new URLSearchParams({ uid: lineProfile.userId }),
           {
             headers: {
