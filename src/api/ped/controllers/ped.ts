@@ -5,7 +5,7 @@ module.exports = {
   async getCategories(ctx) {
     try {
       const response = await fetch(
-        "https://dev02.superaffiliate.app/api/ped_category_list.php",
+        `${process.env.PED_API_BASE_URL}/api/ped_category_list.php`,
         {
           method: "POST",
           headers: {
@@ -24,7 +24,7 @@ module.exports = {
     try {
       const payload = ctx.request.body;
       const response = await fetch(
-        "https://dev02.superaffiliate.app/api/ped.php",
+        `${process.env.PED_API_BASE_URL}/api/ped.php`,
         {
           method: "POST",
           headers: {
