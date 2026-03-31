@@ -6,6 +6,7 @@ module.exports = [
       rolling: false,
       renew: false,
       secure: false,
+      proxy: true,
     },
   },
   {
@@ -27,11 +28,9 @@ module.exports = [
     config: {
       enabled: true,
       origin: function (ctx) {
-        // Allow all origins for public uploads (needed for n8n, AI services, etc.)
         if (ctx.url.startsWith("/uploads")) {
           return "*";
         }
-        // Restrict API endpoints to specific origins
         const allowedOrigins = [
           "http://localhost:5173",
           "https://dev1.superaffiliate.app",
