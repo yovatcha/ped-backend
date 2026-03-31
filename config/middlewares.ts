@@ -1,6 +1,14 @@
 module.exports = [
   "strapi::errors",
   {
+    name: "strapi::session",
+    config: {
+      rolling: false,
+      renew: false,
+      secure: false,
+    },
+  },
+  {
     name: "strapi::security",
     config: {
       contentSecurityPolicy: {
@@ -12,13 +20,6 @@ module.exports = [
           upgradeInsecureRequests: null,
         },
       },
-    },
-  },
-  {
-    name: "strapi::session",
-    config: {
-      secure: true,
-      proxy: true, // ← add this
     },
   },
   {
@@ -51,10 +52,4 @@ module.exports = [
   "strapi::body",
   "strapi::favicon",
   "strapi::public",
-  // {
-  //   name: 'global::filter-channel',
-  //   config: {
-  //     // your configuration properties here
-  //   },
-  // },
 ];
