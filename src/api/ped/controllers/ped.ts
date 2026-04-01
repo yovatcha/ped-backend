@@ -41,6 +41,15 @@ module.exports = {
     }
   },
 
+  async debugEnv(ctx) {
+    const token = process.env.PED_API_TOKEN || "";
+    ctx.send({
+      tokenLength: token.length,
+      tokenPreview: token ? `${token.slice(0, 4)}...${token.slice(-4)}` : "EMPTY",
+      baseUrl: process.env.PED_API_BASE_URL || "EMPTY",
+    });
+  },
+
   async shopSearch(ctx) {
     try {
       const { phone } = ctx.request.body as { phone: string };
