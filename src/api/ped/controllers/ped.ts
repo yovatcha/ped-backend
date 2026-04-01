@@ -40,4 +40,29 @@ module.exports = {
       ctx.throw(500, err);
     }
   },
+
+  async shopSearch(ctx) {
+    try {
+      const { phone } = ctx.request.body as { phone: string };
+      if (!phone) return ctx.badRequest("phone is required");
+
+      const formData = new FormData();
+      formData.append("phone", phone);
+
+      const response = await fetch(
+        `${process.env.PED_API_BASE_URL}/api/ped_shop_search.php`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.PED_API_TOKEN}`,
+          },
+          body: formData,
+        }
+      );
+      const data = await response.json();
+      ctx.send(data);
+    } catch (err) {
+      ctx.throw(500, err);
+    }
+  },
 };
