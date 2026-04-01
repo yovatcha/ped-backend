@@ -12,6 +12,7 @@ services:
       - NODE_ENV=production
       - HOST=0.0.0.0
       - PORT=1337
+      - PUBLIC_URL=https://eagle1.superaffiliate.app
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:1337/_health"]
