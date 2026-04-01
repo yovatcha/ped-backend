@@ -18,5 +18,11 @@ module.exports = {
       handler: "ped.sendPed",
       config: { auth: false, policies: [], middlewares: [] },
     },
+    {
+      method: "POST",
+      path: "/ped/shop-search",
+      handler: "ped.shopSearch",
+      config: { auth: false, policies: [], middlewares: [] },
+    },
   ],
 };
