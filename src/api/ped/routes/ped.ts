@@ -19,6 +19,12 @@ module.exports = {
       config: { auth: false, policies: [], middlewares: [] },
     },
     {
+      method: "GET",
+      path: "/ped/debug-env",
+      handler: "ped.debugEnv",
+      config: { auth: false, policies: [], middlewares: [] },
+    },
+    {
       method: "POST",
       path: "/ped/shop-search",
       handler: "ped.shopSearch",
