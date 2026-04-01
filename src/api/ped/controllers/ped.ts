@@ -55,18 +55,22 @@ module.exports = {
       const { phone } = ctx.request.body as { phone: string };
       if (!phone) return ctx.badRequest("phone is required");
 
+      const formData = new FormData();
+      formData.append("phone", phone);
+
       const response = await fetch(
         `${process.env.PED_API_BASE_URL}/api/ped_shop_search.php`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.PED_API_TOKEN}`,
-            "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: new URLSearchParams({ phone }),
+          body: formData,
         }
       );
-      const data = await response.json();
+      const text = await response.text();
+      console.log("[shopSearch] status:", response.status, "body:", text);
+      const data = JSON.parse(text);
       ctx.send(data);
     } catch (err) {
       ctx.throw(500, err);
