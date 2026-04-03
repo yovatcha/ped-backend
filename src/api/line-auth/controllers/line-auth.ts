@@ -81,6 +81,8 @@ module.exports = {
       });
 
       console.log("Step 2.5: Checking user authorization with external API...");
+      // Declared here so it is in scope when building the redirect URL below
+      let pedMemberId: number | null = null;
       try {
         const authCheckResponse = await axios.post(
           `${process.env.PED_API_BASE_URL}/api/ped_login_check.php`,
@@ -103,7 +105,10 @@ module.exports = {
           );
           return ctx.redirect(`${process.env.FRONTEND_URL}/login?error=not_authorized`);
         }
-        
+
+        // Capture member_id from PED API response
+        pedMemberId = authCheckResponse.data?.data?.member_id ?? null;
+        console.log("PED member_id:", pedMemberId);
         console.log("User authorized, proceeding with login...");
       } catch (apiError) {
         console.error("Error while checking authorization API:", apiError.message);
@@ -155,6 +160,7 @@ module.exports = {
         console.log("Existing user found:", user.id);
       }
 
+
       console.log("Step 4: Generating JWT token...");
 
       // Step 4: Generate JWT token
@@ -165,11 +171,18 @@ module.exports = {
       console.log("JWT generated successfully");
       console.log("Step 5: Redirecting to frontend...");
 
-      const redirectUrl = `${process.env.FRONTEND_URL}/auth/line/callback?access_token=${jwt}`;
-      console.log("Redirect URL:", redirectUrl);
+      const redirectUrl = new URL(
+        `${process.env.FRONTEND_URL}/auth/line/callback`,
+      );
+      redirectUrl.searchParams.set("access_token", jwt);
+      if (pedMemberId !== null) {
+        redirectUrl.searchParams.set("member_id", String(pedMemberId));
+      }
+      console.log("Redirect URL:", redirectUrl.toString());
 
       // Step 5: Redirect to frontend with token
-      ctx.redirect(redirectUrl);
+      ctx.redirect(redirectUrl.toString());
+
     } catch (error) {
       console.error("=== LINE AUTHENTICATION ERROR ===");
       console.error("Error message:", error.message);
