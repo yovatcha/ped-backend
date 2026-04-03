@@ -2,7 +2,58 @@
 
 "use strict";
 
+const N8N_WEBHOOK_URL = () =>
+  process.env.N8N_WEBHOOK_URL || "";
+
 module.exports = {
+  /**
+   * POST /api/generation/trigger
+   * Proxies the payload to n8n server-side so the browser never makes a
+   * cross-origin request to n8n (which has no CORS headers).
+   * Body: { payload: unknown }  — the exact payload to forward to n8n.
+   */
+  async trigger(ctx) {
+    try {
+      const webhookUrl = N8N_WEBHOOK_URL();
+      if (!webhookUrl) {
+        ctx.status = 500;
+        return (ctx.body = {
+          success: false,
+          error: "N8N_WEBHOOK_URL is not configured on the server",
+        });
+      }
+
+      const { payload } = ctx.request.body as { payload: unknown };
+
+      console.log("[trigger] Forwarding to n8n:", webhookUrl);
+
+      const n8nRes = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const responseText = await n8nRes.text();
+
+      if (!n8nRes.ok) {
+        console.error("[trigger] n8n error:", n8nRes.status, responseText);
+        ctx.status = 502;
+        return (ctx.body = {
+          success: false,
+          error: `n8n webhook failed: ${n8nRes.status}`,
+          detail: responseText,
+        });
+      }
+
+      console.log("[trigger] n8n accepted payload, status:", n8nRes.status);
+      ctx.body = { success: true, message: "Payload forwarded to n8n" };
+    } catch (error) {
+      console.error("[trigger] Error:", error.message);
+      ctx.status = 500;
+      ctx.body = { success: false, error: error.message };
+    }
+  },
+
   async callback(ctx) {
     try {
       const requestBody = ctx.request.body;
