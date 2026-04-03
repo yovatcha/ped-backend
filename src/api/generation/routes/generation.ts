@@ -1,6 +1,16 @@
 module.exports = {
   routes: [
     {
+      // Proxy: forwards payload to n8n server-side (avoids browser CORS on n8n webhook)
+      method: "POST",
+      path: "/generation/trigger",
+      handler: "generation.trigger",
+      config: {
+        auth: false,
+        policies: [],
+      },
+    },
+    {
       method: "POST",
       path: "/generation/callback",
       handler: "generation.callback",
